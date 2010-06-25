@@ -1,10 +1,11 @@
-from base import SCAD_Prog
-from primatives import *
-from transforms import * 
-from highlevel import *
+"""
+A bunch of random examples in no apparent order. However, almost every feature
+is demonstrated here.
+"""
+from py2scad import *
 import scipy
 
-if 1:
+if 0:
 
     c = Circle(r=2.0)
     s = Square(size=[3,1])
@@ -13,7 +14,7 @@ if 1:
     print p
     print c
 
-if 1:
+if 0:
 
     c = Circle(r=1.0)
     c = Translate(c,v=[2,0,0])
@@ -21,7 +22,7 @@ if 1:
     torus.write('test.scad')
     print torus
 
-if 1:
+if 0:
 
     x = scipy.linspace(0,8,500)
 
@@ -56,7 +57,7 @@ if 1:
 
 
 
-if 1:
+if 0:
     import math
     DEG2RAD = math.pi/180.0
 
@@ -82,7 +83,7 @@ if 1:
     prog.write('test.scad')
     print prog
 
-if 1:
+if 0:
 
     c1 = Cylinder(h=0.5, r1=3.5, r2=3.5) 
     c3 = Cylinder(h=1.0, r1=2.6, r2=2.6)
@@ -118,8 +119,9 @@ if 1:
     print prog
 
 
-if 1:
+if 0:
 
+    # Note this example will fail in openscad if test.stl doesn't  exist
     model = Import_STL('test.stl')
     hole = Cylinder(h=10,r1=2,r2=2)
     hole = Translate(hole,v=[0,7,0],mod='')
@@ -130,15 +132,15 @@ if 1:
     prog.fn=50
     prog.write('test.scad')
 
-if 1:
+if 0:
 
     prog = SCAD_Prog()
     p = Cube(size=[15,15,1])
-    p = Color(p,rgba=[0.5,0.5,0.5,0.5])
+    p = Color(p,rgba=[0.5,0.5,0.5,1.0])
     c = Cylinder(h=5,r1=2,r2=1)
-    c = Color(c,rgba=[0,1,0,0.1])
+    c = Color(c,rgba=[0,1,0,1.0])
     s = Sphere(r=1)
-    s = Color(s,rgba=[1,0,0,0.05])
+    s = Color(s,rgba=[1,0,0,1.00])
     p = AnimRotate(p,a='$t*360.0',v=[1.0,0.0,0.0])
     c = AnimTranslate(c,v='[0.0,0.0,10.0*cos($t*360)]')
     s = AnimTranslate(s,v='[20*cos($t*360),10*sin($t*360*2),0]')
@@ -150,16 +152,16 @@ if 1:
     prog.write('test.scad')
 
         
-if 1:
+if 0:
     prog = SCAD_Prog()
     box = rounded_box(20,20,10,2.0)
-    test = Cube(size=[20,20,10],mod='%')
     prog.add(box)
-    prog.add(test)
+    #test = Cube(size=[20,20,10],mod='%')
+    #prog.add(test)
     prog.fn=30
     prog.write('test.scad')
 
-if 1:
+if 0:
     prog = SCAD_Prog()
     box = rounded_box(10,10,5,2.5)
     cube = rounded_box(20,20,5,0.5)
@@ -170,7 +172,7 @@ if 1:
     prog.write('test.scad')
 
 
-if 1:
+if 0:
     prog = SCAD_Prog()
     points = [[0,0,0],[1,0,0],[1,1,0],[0,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]]
     
@@ -181,7 +183,7 @@ if 1:
     prog.fn=20
     prog.write('test.scad')
 
-if 1:
+if 0:
     
     def sqr(x,y):
         return x**2 + y**2
@@ -200,7 +202,7 @@ if 1:
     prog.fn=20
     prog.write('test.scad')
 
-if 1:
+if 0:
 
     prog = SCAD_Prog()
     c = Circle(r=0.25)
@@ -218,7 +220,7 @@ if 1:
     prog.add(p)
     prog.write('test.scad')
 
-if 1:
+if 0:
     prog = SCAD_Prog()
     p = ellipse_edged_disk(1,5,edge_scale=1.5)
     prog.fn=40
