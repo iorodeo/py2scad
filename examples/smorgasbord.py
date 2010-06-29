@@ -66,24 +66,24 @@ if 0:
     height = 0.5
     hole_diam = 0.1
     pat_radius = 0.4
+    hole_ang = 30
 
     holes = []
-    for x_shift in [-4.5, -3.0,-1.5, 0,1.5,3.0, 4.5]:
+    for x_shift in [-4.5,-3.0,-1.5, 0,1.5,3.0,4.5]:
         for y_shift in [-1.5,0, 1.5]:
-            for ang in range(0,360,60):
+            for ang in range(0,360,hole_ang):
                 x = pat_radius*math.cos(DEG2RAD*ang) + x_shift
                 y = pat_radius*math.sin(DEG2RAD*ang) + y_shift
                 holes.append((x,y,hole_diam))
 
     plate = plate_w_holes(length,width,height,holes,hole_mod='')
-
     prog = SCAD_Prog()
     prog.add(plate)
     prog.fn=50
     prog.write('test.scad')
     print prog
 
-if 0:
+if 1:
 
     c1 = Cylinder(h=0.5, r1=3.5, r2=3.5) 
     c3 = Cylinder(h=1.0, r1=2.6, r2=2.6)
@@ -213,7 +213,7 @@ if 0:
     prog.fn=30
     prog.write('test.scad')
 
-if 1:
+if 0:
     prog = SCAD_Prog()
     p = partial_cylinder(5,1,2,90.0,360.0,mod='')
     prog.fn=40
