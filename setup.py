@@ -1,5 +1,5 @@
 """
-Copyright 2010  IO Rodeo Inc. 
+Copyright 2010  IO Rodeo Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@ limitations under the License.
 from setuptools import setup, find_packages
 
 setup(name='py2scad',
-      version='0.1', 
+      version='0.1',
       description = 'library for creating OpenSCAD models',
       author = 'William Dickson, IO Rodeo Inc.',
       author_email = 'will@iorodeo.com',
       packages=find_packages(),
       )
-      
+
