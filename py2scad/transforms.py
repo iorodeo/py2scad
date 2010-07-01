@@ -159,3 +159,4 @@ class Rotate_Extrude(base.SCAD_CMP_Object):
     def cmd_str(self,tab_level=0):
         rtn_str = 'rotate_extrude(convexity=%d)'%(self.convexity,)
         return rtn_str
+
