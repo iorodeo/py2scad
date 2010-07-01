@@ -15,7 +15,7 @@ limitations under the License.
 """
 from setuptools import setup, find_packages
 
-setup(name='simple_step',
+setup(name='py2scad',
       version='0.1', 
       description = 'library for creating OpenSCAD models',
       author = 'William Dickson, IO Rodeo Inc.',
