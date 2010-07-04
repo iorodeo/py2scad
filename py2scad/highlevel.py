@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import scipy
-from primatives import *
+from primitives import *
 from transforms import *
 from utility import DEG2RAD
 from utility import RAD2DEG

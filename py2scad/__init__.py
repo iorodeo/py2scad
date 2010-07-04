@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from base import SCAD_Prog
-from primatives import *
+from primitives import *
 from transforms import *
 from highlevel import *
  
