@@ -1,5 +1,4 @@
-")""
-n 
+"""
 Copyright 2010  IO Rodeo Inc. 
 
 Licensed under the Apache License, Version 2.0 (the "License");

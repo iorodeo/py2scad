@@ -7,16 +7,21 @@
 # --------------------------------------------------------------
 import vtk, sys
 
-stlfile = sys.argv[1]
-# Create the reader and read a data file.  
-sr = vtk.vtkSTLReader()
-sr.SetFileName(stlfile)
+stl_files = sys.argv[1:]
 
-# Connect the mapper and actor 
-stlMapper = vtk.vtkPolyDataMapper()
-stlMapper.SetInput(sr.GetOutput())
-stlActor = vtk.vtkLODActor()
-stlActor.SetMapper(stlMapper)
+actor_list = []
+for f in stl_files:
+
+    # Create the reader and read a data file.  
+    sr = vtk.vtkSTLReader()
+    sr.SetFileName(f)
+
+    # Connect the mapper and actor 
+    stlMapper = vtk.vtkPolyDataMapper()
+    stlMapper.SetInput(sr.GetOutput())
+    stlActor = vtk.vtkLODActor()
+    stlActor.SetMapper(stlMapper)
+    actor_list.append(stlActor)
 
 # Create the Renderer, RenderWindow, and RenderWindowInteractor
 ren = vtk.vtkRenderer()
@@ -26,7 +31,9 @@ iren = vtk.vtkRenderWindowInteractor()
 iren.SetRenderWindow(renWin)
 
 # Add the actors to the render; set the background and size
-ren.AddActor(stlActor)
+for a in actor_list:
+    ren.AddActor(a)
+
 ren.SetBackground(0.1, 0.2, 0.4)
 renWin.SetSize(600, 600)
 
