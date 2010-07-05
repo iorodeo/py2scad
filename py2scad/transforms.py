@@ -1,4 +1,5 @@
-"""
+")""
+n 
 Copyright 2010  IO Rodeo Inc. 
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -160,3 +161,16 @@ class Rotate_Extrude(base.SCAD_CMP_Object):
         rtn_str = 'rotate_extrude(convexity=%d)'%(self.convexity,)
         return rtn_str
 
+
+# 3D to 2D projection ---------------------------------------------------------
+
+class Projection(base.SCAD_CMP_Object):
+
+    def __init__(self,obj,cut=True,mod=''):
+        base.SCAD_CMP_Object.__init__(self,obj,mod=mod)
+        self.cut = cut
+
+    def cmd_str(self,tab_level=0):
+        cut_str = '%s'%(self.cut,)
+        cut_str = cut_str.lower()
+        return 'projection(cut=%s)'%(cut_str,)

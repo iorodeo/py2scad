@@ -6,3 +6,4 @@ syntax: glob
 *.swp
 *.scad
 *.stl
+*.dxf
