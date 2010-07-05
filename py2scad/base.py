@@ -17,8 +17,8 @@ from utility import TAB_WIDTH
 
 class SCAD_Prog(object):
 
-    def __init__(self,objlist = [],fn=None,fa=None,fs=None):
-        self.objlist = objlist 
+    def __init__(self,fn=None,fa=None,fs=None):
+        self.objlist = []
         self.fn = fn
         self.fa = fa
         self.fs = fs
