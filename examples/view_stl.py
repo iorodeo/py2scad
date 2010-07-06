@@ -108,8 +108,6 @@ for f, prm in stl_files:
         except KeyError:
             pass
 
-    print 'done'
-
     prop.SetInterpolationToGouraud()
     stl_mapper.Update()
     ren.AddActor(stl_actor)

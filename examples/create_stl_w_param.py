@@ -22,7 +22,6 @@ prog0.fn = 40
 prog0.add(c0)
 prog0.write('test0.scad')
 
-
 prog1 = SCAD_Prog()
 prog1.fn = 40
 prog1.add(c1)
