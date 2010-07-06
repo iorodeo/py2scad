@@ -33,7 +33,7 @@ for f in args:
 
 # Read configuration file if it exists
 if not options.configfile == None:
-    have_config = True
+
     with open(options.configfile,'r') as fid:
         config = pickle.load(fid)
 
@@ -82,7 +82,6 @@ for f, prm in stl_files:
     prop = stl_actor.GetProperty()
 
     if not prm == None:
-        print 'setting parameters'
         try:
             prop.SetColor(*prm['color'])
         except KeyError:
