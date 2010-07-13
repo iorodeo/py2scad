@@ -149,6 +149,25 @@ class Linear_Extrude(base.SCAD_CMP_Object):
             rtn_str = 'linear_extrude(height=%s,twist=%s,center=%s,convexity=%d,slices=%d)'%str_tup
         return rtn_str
 
+class Linear_DXF_Extrude(base.SCAD_Object):
+
+    def __init__(self,filename,height=1.0,layer=None,center=True,convexity=10,twist=0,mod=''):
+        base.SCAD_Object.__init__(self,center=center,mod=mod)
+        self.filename = filename
+        self.height = float(height)
+        self.layer = layer
+        self.twist = float(twist)
+        self.convexity = int(convexity)
+
+    def cmd_str(self, tab_level=0):
+        arg_str = 'file="%s"'%(self.filename,)
+        if not self.layer == None:
+            arg_str = '%s, layer=%s'%(arg_str,self.layer,)
+        arg_str = '%s, height=%f'%(arg_str,self.height)
+        arg_str = '%s, center=%s'%(arg_str,self.center_str())
+        arg_str = '%s, convexity=%d'%(arg_str,self.convexity)
+        arg_str = '%s, twist=%f'%(arg_str,self.twist)
+        return 'linear_extrude(%s);'%(arg_str,)
 
 class Rotate_Extrude(base.SCAD_CMP_Object):
 
