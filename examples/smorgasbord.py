@@ -5,7 +5,7 @@ is demonstrated here.
 from py2scad import *
 import scipy
 
-if 0:
+if 1:
 
     c = Circle(r=2.0)
     s = Square(size=[3,1])
@@ -227,7 +227,7 @@ if 0:
     prog.add(p)
     prog.write('test.scad')
 
-if 1:
+if 0:
     prog = SCAD_Prog()
     prog.fn = 40
     base = Cube(size=[2,3,0.1])
