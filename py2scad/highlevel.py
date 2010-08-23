@@ -114,6 +114,27 @@ def plate_w_holes(length, width, height, holes=[], hole_mod='', radius=False):
     obj_list = [plate] + cylinders
     plate = Difference(obj_list)
     return plate
+    
+def disk_w_holes(height, d1, holes=[], hole_mod=''):
+    """
+    Create a disk with holes in it.
+    
+    Arguments:
+      d1 = diameter of the disk
+      height = z dimension of disk
+      holes  = list of tuples giving x position, y position and diameter of 
+               holes
+    """
+    
+    cyl = Cylinder(h=height,r1=d1*0.5,r2=d1*0.5)
+    cylinders = []
+    for x,y,r in holes:
+        c = Cylinder(h=4*height,r1=0.5*r, r2=0.5*r)
+        c = Translate(c,v=[x,y,0],mod=hole_mod)
+        cylinders.append(c)
+    obj_list = [cyl] + cylinders
+    disk = Difference(obj_list)
+    return disk
 
 def grid_box(length, width, height, num_length, num_width,top_func=None,bot_func=None):
     """
