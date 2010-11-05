@@ -267,9 +267,107 @@ def rounded_disk(h,r,edge_r):
 
 
 
+def right_triangle(x,y,z):
+    """
+    Creates an object which is a right triangle in the x,y plane  and height z.
+    The hypotenuse of the triangle is given by sqrt(x**2 + y**2) and the right
+    angle of the triangle is located at the origin.
+    """
+    rect_base = Cube(size=[x,y,z])
+    rect_diff = Cube(size=[2*scipy.sqrt(x**2+y**2),y,2*z])
+    rect_diff = Translate(rect_diff,v=[0,0.5*y,0])
+    theta = -scipy.arctan2(y,x)*RAD2DEG
+    rect_diff = Rotate(rect_diff,a=theta,v=[0,0,1])
+    triangle = Difference([rect_base,rect_diff])
+    triangle = Translate(triangle,v=[0.5*x, 0.5*y, 0])
+    return triangle 
+
+
+def right_triangle_w_tabs(x, y, z, num_x=1, num_y=1, tab_depth='z', tab_epsilon=0.0,
+        solid=True, removal_frac=0.6):
+    """
+    Creates a polygonal object which is a right triangle in the x,y plane with
+    hypotenuse sqrt(x**2 + y**2). The shape is rectangular in the x,z and y,z
+    planes with the z dimension given by z. Tabs are placed along the x and y
+    edges of the part. 
     
+    Arguments:
+    x = x dimension of part
+    y = y dimension of part
+    z = z dimension of (thickness)
+
+    Keyword Arguments:
+    num_x         = number of tabs along the x dimension of the triangle (default=1)
+    num_y         = number of tabs along the y dimension of the triangle (default=1)
+    tab_depth     = the length the tabs should stick out from the part. If set to 
+                    'z' this will be the z dimension or thickness of the part. 
+                    Otherwise it should be a number. (default = 'z')
+    tab_epsilon   = amount the tabs should be over/under sized. 2 times this value
+                    is added to the tabe width. 
+    solid         = specifies whether the part should be solid or not. 
+    removal_frac  = specifies the fraction of the interior to be removed. Only used
+                    when solid == False
+    
+    """
+    if tab_depth in ('z','Z'):
+        # Sets the depth of the tabs to that of the part z dim (the thickness)
+        tab_depth = z
+    
+    triangle = right_triangle(x,y,z)
+    tabs = []
+    tabs = []
+    if num_x > 0:
+        # Make x-tabs
+        tab_x_width = x/(2.0*num_x+1) + 2*tab_epsilon
+        tab_x_base = Cube(size=[tab_x_width,2*tab_depth,z])
+        tab_x_pos = scipy.linspace(0,x,num_x+2)
+        tab_x_pos = tab_x_pos[1:-1]
+        for x_pos in tab_x_pos:
+            tabs.append(Translate(tab_x_base,v=[x_pos,0,0]))
+    if num_y > 0:
+        # Make y-tabe
+        tab_y_width = y/(2.0*num_y+1) + 2*tab_epsilon
+        tab_y_base = Cube(size=[2*tab_depth,tab_y_width,z])
+        tab_y_pos = scipy.linspace(0,y,num_y+2)
+        tab_y_pos = tab_y_pos[1:-1]
+        for y_pos in tab_y_pos:
+            tabs.append(Translate(tab_y_base,v=[0,y_pos,0]))
+
+    triangle = Union([triangle]+tabs)
+
+    if solid == False:
+        xx,yy = removal_frac*x, removal_frac*y
+        sub_triangle = right_triangle(xx,yy,2*z)
+        x_shift = (x - xx)/3.0 
+        y_shift = (y - yy)/3.0
+        sub_triangle = Translate(sub_triangle,v=[x_shift,y_shift,0])
+        triangle = Difference([triangle,sub_triangle])
+
+    return triangle
 
 
+def right_angle_bracket(length_base, length_face, width, thickness, bracket_frac=0.6):
+    """
+    Creates a right angle bracket -- not finished yet. 
+    """
+    base = Cube(size=[length_base, width, thickness])
+    face = Cube(size=[length_face, width, thickness])
+    face= Rotate(face,a=90,v=[0,1,0])
+    x_shift = 0.5*length_base-0.5*thickness
+    z_shift = 0.5*length_face+0.5*thickness
+    face = Translate(face,v=[x_shift,0,z_shift])
 
-
-
+    bracket_x = bracket_frac*(length_base - thickness)
+    bracket_y = bracket_frac*length_face
+    bracket = right_triangle_w_tabs(bracket_x,bracket_y,thickness,num_x=4,num_y=4)
+    bracket = Rotate(bracket,a=90,v=[1,0,0])
+    bracket = Rotate(bracket,a=180,v=[0,0,1])
+    bracket = Translate(bracket,v=[0,0,0.5*thickness])
+    bracket = Translate(bracket,v=[0.5*length_base-thickness,0,0])
+    y_shift = 0.5*width-0.5*thickness
+    bracket_pos = Translate(bracket,v=[0,y_shift,0])
+    bracket_neg = Translate(bracket,v=[0,-y_shift,0])
+    
+    base.mod = '%'
+    face.mod = '%'
+    return [base,face,bracket_pos,bracket_neg]
