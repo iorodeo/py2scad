@@ -61,7 +61,7 @@ class Cylinder(base.SCAD_Object):
         if self.r2:
             r2_str = utility.val_to_str(self.r2)
             return 'cylinder(h=%s,r1=%s,r2=%s,center=%s);'%(h_str, r1_str, r2_str, center_str)
-        return 'cylinder(h=%s,r1=%s,center=%s);'%(h_str, r1_str, center_str)
+        return 'cylinder(h=%s,r=%s,center=%s);'%(h_str, r1_str, center_str)
 
 class Polyhedron(base.SCAD_Object):
 
