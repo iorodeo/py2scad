@@ -349,20 +349,21 @@ def right_triangle_w_tabs(x, y, z, num_x=1, num_y=1, tab_depth='z', tab_epsilon=
     return triangle
 
 
-def right_angle_bracket(length_base, length_face, width, thickness, bracket_frac=0.6):
+def right_angle_bracket(length_base, length_face, width, thickness, num_x_tabs=2, num_y_tabs=2,bracket_frac=0.6):
     """
     Creates a right angle bracket -- not finished yet.
     """
+    length_face_adj = length_face - thickness
     base = Cube(size=[length_base, width, thickness])
-    face = Cube(size=[length_face, width, thickness])
+    face = Cube(size=[length_face_adj, width, thickness])
     face= Rotate(face,a=90,v=[0,1,0])
     x_shift = 0.5*length_base-0.5*thickness
-    z_shift = 0.5*length_face+0.5*thickness
+    z_shift = 0.5*length_face_adj+0.5*thickness
     face = Translate(face,v=[x_shift,0,z_shift])
 
     bracket_x = bracket_frac*(length_base - thickness)
-    bracket_y = bracket_frac*length_face
-    bracket = right_triangle_w_tabs(bracket_x,bracket_y,thickness,num_x=4,num_y=4)
+    bracket_y = bracket_frac*length_face_adj
+    bracket = right_triangle_w_tabs(bracket_x,bracket_y,thickness,num_x=num_x_tabs,num_y=num_y_tabs)
     bracket = Rotate(bracket,a=90,v=[1,0,0])
     bracket = Rotate(bracket,a=180,v=[0,0,1])
     bracket = Translate(bracket,v=[0,0,0.5*thickness])
