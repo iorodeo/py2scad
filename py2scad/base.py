@@ -55,10 +55,10 @@ class SCAD_Object(object):
     """Scad object wrapper base class."""
 
     def __init__(self,center=True,mod=''):
-        self.type = None
-        self.center = center
-        self.cmp = False
-        self.mod = mod
+        self.type = None    # ?
+        self.center = center# Centered or positive quadrent
+        self.cmp = False    # Is compound
+        self.mod = mod      # Rendering modifier (*,%,#,!)
 
     def center_str(self):
         return str(self.center).lower()

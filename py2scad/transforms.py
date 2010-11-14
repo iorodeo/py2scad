@@ -1,5 +1,5 @@
 """
-Copyright 2010  IO Rodeo Inc. 
+Copyright 2010  IO Rodeo Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import utility
 # 3D transformations ---------------------------------------------------------
 
 class Scale(base.SCAD_CMP_Object):
-
+    """Scale contained object along local x,y,z."""
     def __init__(self,obj,v=[1.0,1.0,1.0], mod=''):
         base.SCAD_CMP_Object.__init__(self, obj, mod=mod)
         self.v = utility.float_list3(v)
@@ -29,16 +29,21 @@ class Scale(base.SCAD_CMP_Object):
         return 'scale(v=%s)'%(v_str)
 
 class Rotate(base.SCAD_CMP_Object):
+    """Rotate contained objects."""
 
-    def __init__(self,obj,a=0.0,v=[1.0,0.0,0.0],mod=''):
+    def __init__(self, obj, v=[1.0,0.0,0.0], a=None, mod=''):
         base.SCAD_CMP_Object.__init__(self,obj,mod=mod)
-        self.a = float(a)
-        self.v = utility.float_list3(v) 
+        self.v = utility.float_list3(v)
+        self.a = a
 
     def cmd_str(self,tab_level=0):
-        a_str = utility.val_to_str(self.a)
         v_str = utility.val_to_str(self.v)
-        return 'rotate(a=%s,v=%s)'%(a_str,v_str)
+        if self.a: # If there's an angle use axis/angle
+            a_str = utility.val_to_str(self.a)
+            return 'rotate(a=%s,v=%s)'%(a_str,v_str)
+        # If not a then interpret v as a vector of angles
+        return 'rotate(a=%s)'%(v_str)
+
 
 class AnimRotate(base.SCAD_CMP_Object):
 
@@ -68,7 +73,7 @@ class AnimTranslate(base.SCAD_CMP_Object):
 
     def cmd_str(self,tab_level=0):
         return 'translate(v=%s)'%(self.v,)
-       
+
 class Mirror(base.SCAD_CMP_Object):
 
     def __init__(self,obj,v=[1.0,0.0,0.0],mod=''):
@@ -122,7 +127,7 @@ class Intersection(base.SCAD_CMP_Object):
 
     def cmd_str(self,tab_level=0):
         return 'intersection()'
-    
+
 # 2D to 3D Extrusion -----------------------------------------------------------
 
 class Linear_Extrude(base.SCAD_CMP_Object):

@@ -1,5 +1,5 @@
 """
-Copyright 2010  IO Rodeo Inc. 
+Copyright 2010  IO Rodeo Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ class Cube(base.SCAD_Object):
     def cmd_str(self,tab_level=0):
         size_str = utility.val_to_str(self.size)
         center_str = self.center_str()
-        return 'cube(size=%s,center=%s);'%(size_str,center_str) 
+        return 'cube(size=%s,center=%s);'%(size_str,center_str)
 
 class Sphere(base.SCAD_Object):
 
@@ -45,19 +45,24 @@ class Sphere(base.SCAD_Object):
 
 class Cylinder(base.SCAD_Object):
 
-    def __init__(self, h=1.0, r1=1.0, r2=1.0, center=True,mod=''):
+    def __init__(self, h=1.0, r1=1.0, r2=None, center=True, mod=''):
         base.SCAD_Object.__init__(self,center=center,mod=mod)
         self.h = float(h)
         self.r1 = float(r1)
-        self.r2 = float(r2)
+        # r2 is optional
+        self.r2 = r2
+        if r2:
+            self.r2 = float(r2)
 
     def cmd_str(self,tab_level=0):
+        center_str = self.center_str()
         h_str = utility.val_to_str(self.h)
         r1_str = utility.val_to_str(self.r1)
-        r2_str = utility.val_to_str(self.r2)
-        center_str = self.center_str()
-        return 'cylinder(h=%s,r1=%s,r2=%s,center=%s);'%(h_str, r1_str, r2_str, center_str)
-        
+        if self.r2:
+            r2_str = utility.val_to_str(self.r2)
+            return 'cylinder(h=%s,r1=%s,r2=%s,center=%s);'%(h_str, r1_str, r2_str, center_str)
+        return 'cylinder(h=%s,r1=%s,center=%s);'%(h_str, r1_str, center_str)
+
 class Polyhedron(base.SCAD_Object):
 
     def __init__(self, points, faces, center=True, mod=''):
