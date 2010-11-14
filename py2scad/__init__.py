@@ -1,5 +1,5 @@
 """
-Copyright 2010  IO Rodeo Inc. 
+Copyright 2010  IO Rodeo Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,5 +16,7 @@ limitations under the License.
 from base import SCAD_Prog
 from primitives import *
 from transforms import *
-from highlevel import *
- 
+try:
+    from highlevel import *
+except ImportError:
+    print("The highlevel module requires the numpy/scipy module, it has been disabled.")

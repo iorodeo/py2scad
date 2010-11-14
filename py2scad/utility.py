@@ -1,5 +1,5 @@
 """
-Copyright 2010  IO Rodeo Inc. 
+Copyright 2010  IO Rodeo Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@ limitations under the License.
 import math
 
 TAB_WIDTH = 4
-DEG2RAD = math.pi/180.0
-RAD2DEG = 180.0/math.pi
+#DEG2RAD = math.pi/180.0
+#RAD2DEG = 180.0/math.pi
+DEG2RAD = math.degrees
+RAD2DEG = math.radians
 
 # Utility functions -----------------------------------------------------------
 
@@ -42,7 +44,9 @@ def float_list(v):
     return _v
 
 def val_to_str(x,tab_level=0):
-    tab_str = ' '*TAB_WIDTH*tab_level
+    tab_str = ''
+    if tab_level:
+        tab_str = ' '*TAB_WIDTH*tab_level
     if type(x) == float:
         x_str = '%s%f'%(tab_str,x,)
     else:
@@ -65,4 +69,3 @@ def write_obj_list(obj_list, filename, fn=100):
     for obj in obj_list:
         fid.write('%s\n'%(obj,))
     fid.close()
-

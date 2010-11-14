@@ -1,5 +1,5 @@
 """
-Copyright 2010  IO Rodeo Inc. 
+Copyright 2010  IO Rodeo Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,13 +13,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import scipy
+try:
+    import scipy as numpy
+except ImportError:
+    import numpy
 from primitives import *
 from transforms import *
 from utility import DEG2RAD
 from utility import RAD2DEG
 
-def rounded_box(length,width,height,radius,round_x=True,round_y=True,round_z=True):
+def rounded_box(length, width, height, radius,
+                round_x=True, round_y=True, round_z=True):
     """
     Create a box with rounded corners
     """
@@ -94,12 +98,12 @@ def rounded_box(length,width,height,radius,round_x=True,round_y=True,round_z=Tru
 def plate_w_holes(length, width, height, holes=[], hole_mod='', radius=False):
     """
     Create a plate with holes in it.
-    
+
     Arguments:
       length = x dimension of plate
       width  = y dimension of plate
       height = z dimension of plate
-      holes  = list of tuples giving x position, y position and diameter of 
+      holes  = list of tuples giving x position, y position and diameter of
                holes
     """
     if radius == False:
@@ -114,18 +118,18 @@ def plate_w_holes(length, width, height, holes=[], hole_mod='', radius=False):
     obj_list = [plate] + cylinders
     plate = Difference(obj_list)
     return plate
-    
+
 def disk_w_holes(height, d1, holes=[], hole_mod=''):
     """
     Create a disk with holes in it.
-    
+
     Arguments:
       d1 = diameter of the disk
       height = z dimension of disk
-      holes  = list of tuples giving x position, y position and diameter of 
+      holes  = list of tuples giving x position, y position and diameter of
                holes
     """
-    
+
     cyl = Cylinder(h=height,r1=d1*0.5,r2=d1*0.5)
     cylinders = []
     for x,y,r in holes:
@@ -139,14 +143,14 @@ def disk_w_holes(height, d1, holes=[], hole_mod=''):
 def grid_box(length, width, height, num_length, num_width,top_func=None,bot_func=None):
     """
     Create a box with given length, width, and height. The top and bottom surface of the
-    box will be triangulate bases on a grid with num_length and num_width points. 
+    box will be triangulate bases on a grid with num_length and num_width points.
     Optional functions top_func and bot_func can be given to distort the top or bottom
-    surfaces of the box. 
+    surfaces of the box.
     """
     nl = num_length + 1
     nw = num_width + 1
-    xpts = scipy.linspace(-0.5*length,0.5*length,nl)
-    ypts = scipy.linspace(-0.5*width,0.5*width,nw)
+    xpts = numpy.linspace(-0.5*length,0.5*length,nl)
+    ypts = numpy.linspace(-0.5*width,0.5*width,nw)
 
     points_top = []
     points_bot = []
@@ -193,7 +197,6 @@ def grid_box(length, width, height, num_length, num_width,top_func=None,bot_func
         f = [2*numtop-nl+i,2*numtop-nl+i+1,numtop-nl+i]
         faces_back.append(f)
 
-
     faces_right = []
     faces_left = []
     for j in range(0,nw-1):
@@ -209,8 +212,8 @@ def grid_box(length, width, height, num_length, num_width,top_func=None,bot_func
         faces_left.append(f)
 
     points = points_top + points_bot
-    faces = faces_top + faces_bot 
-    faces.extend(faces_front) 
+    faces = faces_top + faces_bot
+    faces.extend(faces_front)
     faces.extend(faces_back)
     faces.extend(faces_right)
     faces.extend(faces_left)
@@ -221,12 +224,12 @@ def grid_box(length, width, height, num_length, num_width,top_func=None,bot_func
 def wedge_cut(obj,ang0,ang1,r,h,numpts=20,mod=''):
     """
     Cut out a wedge from obj from ang0 to ang1 with given radius r
-    and height h. 
+    and height h.
     """
     ang0rad = DEG2RAD*ang0
     ang1rad = DEG2RAD*ang1
-    angs = scipy.linspace(ang0rad,ang1rad,numpts)
-    points_arc = [[r*scipy.cos(a),r*scipy.sin(a)] for a in angs]
+    angs = numpy.linspace(ang0rad,ang1rad,numpts)
+    points_arc = [[r*numpy.cos(a),r*numpy.sin(a)] for a in angs]
     points = [[0,0]]
     points.extend(points_arc)
     paths = [range(0,len(points))]
@@ -243,8 +246,8 @@ def partial_cylinder(h,r1,r2,ang0,ang1,cut_extra=1.0,mod=''):
     cut_ang0 = ang1
     cut_ang1 = ang0 + 360.0
     cyl = Cylinder(h=h,r1=r1,r2=r2)
-    cut_r = max([r1,r2]) + cut_extra 
-    cut_h = h + cut_extra 
+    cut_r = max([r1,r2]) + cut_extra
+    cut_h = h + cut_extra
     cut_cyl = wedge_cut(cyl,cut_ang0,cut_ang1,cut_r,cut_h,mod=mod)
     return cut_cyl
 
@@ -260,7 +263,7 @@ def ellipse_edged_disk(h,r,edge_scale=1.0):
     c = Translate(c,v=[r-edge_len,0,0])
     torus = Rotate_Extrude(c)
     disk = Union([disk,torus])
-    return disk 
+    return disk
 
 def rounded_disk(h,r,edge_r):
     pass
@@ -274,13 +277,13 @@ def right_triangle(x,y,z):
     angle of the triangle is located at the origin.
     """
     rect_base = Cube(size=[x,y,z])
-    rect_diff = Cube(size=[2*scipy.sqrt(x**2+y**2),y,2*z])
+    rect_diff = Cube(size=[2*numpy.sqrt(x**2+y**2),y,2*z])
     rect_diff = Translate(rect_diff,v=[0,0.5*y,0])
-    theta = -scipy.arctan2(y,x)*RAD2DEG
+    theta = -numpy.arctan2(y,x)*RAD2DEG
     rect_diff = Rotate(rect_diff,a=theta,v=[0,0,1])
     triangle = Difference([rect_base,rect_diff])
     triangle = Translate(triangle,v=[0.5*x, 0.5*y, 0])
-    return triangle 
+    return triangle
 
 
 def right_triangle_w_tabs(x, y, z, num_x=1, num_y=1, tab_depth='z', tab_epsilon=0.0,
@@ -289,8 +292,8 @@ def right_triangle_w_tabs(x, y, z, num_x=1, num_y=1, tab_depth='z', tab_epsilon=
     Creates a polygonal object which is a right triangle in the x,y plane with
     hypotenuse sqrt(x**2 + y**2). The shape is rectangular in the x,z and y,z
     planes with the z dimension given by z. Tabs are placed along the x and y
-    edges of the part. 
-    
+    edges of the part.
+
     Arguments:
     x = x dimension of part
     y = y dimension of part
@@ -299,20 +302,20 @@ def right_triangle_w_tabs(x, y, z, num_x=1, num_y=1, tab_depth='z', tab_epsilon=
     Keyword Arguments:
     num_x         = number of tabs along the x dimension of the triangle (default=1)
     num_y         = number of tabs along the y dimension of the triangle (default=1)
-    tab_depth     = the length the tabs should stick out from the part. If set to 
-                    'z' this will be the z dimension or thickness of the part. 
+    tab_depth     = the length the tabs should stick out from the part. If set to
+                    'z' this will be the z dimension or thickness of the part.
                     Otherwise it should be a number. (default = 'z')
     tab_epsilon   = amount the tabs should be over/under sized. 2 times this value
-                    is added to the tabe width. 
-    solid         = specifies whether the part should be solid or not. 
+                    is added to the tabe width.
+    solid         = specifies whether the part should be solid or not.
     removal_frac  = specifies the fraction of the interior to be removed. Only used
                     when solid == False
-    
+
     """
     if tab_depth in ('z','Z'):
         # Sets the depth of the tabs to that of the part z dim (the thickness)
         tab_depth = z
-    
+
     triangle = right_triangle(x,y,z)
     tabs = []
     tabs = []
@@ -320,7 +323,7 @@ def right_triangle_w_tabs(x, y, z, num_x=1, num_y=1, tab_depth='z', tab_epsilon=
         # Make x-tabs
         tab_x_width = x/(2.0*num_x+1) + 2*tab_epsilon
         tab_x_base = Cube(size=[tab_x_width,2*tab_depth,z])
-        tab_x_pos = scipy.linspace(0,x,num_x+2)
+        tab_x_pos = numpy.linspace(0,x,num_x+2)
         tab_x_pos = tab_x_pos[1:-1]
         for x_pos in tab_x_pos:
             tabs.append(Translate(tab_x_base,v=[x_pos,0,0]))
@@ -328,7 +331,7 @@ def right_triangle_w_tabs(x, y, z, num_x=1, num_y=1, tab_depth='z', tab_epsilon=
         # Make y-tabe
         tab_y_width = y/(2.0*num_y+1) + 2*tab_epsilon
         tab_y_base = Cube(size=[2*tab_depth,tab_y_width,z])
-        tab_y_pos = scipy.linspace(0,y,num_y+2)
+        tab_y_pos = numpy.linspace(0,y,num_y+2)
         tab_y_pos = tab_y_pos[1:-1]
         for y_pos in tab_y_pos:
             tabs.append(Translate(tab_y_base,v=[0,y_pos,0]))
@@ -338,7 +341,7 @@ def right_triangle_w_tabs(x, y, z, num_x=1, num_y=1, tab_depth='z', tab_epsilon=
     if solid == False:
         xx,yy = removal_frac*x, removal_frac*y
         sub_triangle = right_triangle(xx,yy,2*z)
-        x_shift = (x - xx)/3.0 
+        x_shift = (x - xx)/3.0
         y_shift = (y - yy)/3.0
         sub_triangle = Translate(sub_triangle,v=[x_shift,y_shift,0])
         triangle = Difference([triangle,sub_triangle])
@@ -348,7 +351,7 @@ def right_triangle_w_tabs(x, y, z, num_x=1, num_y=1, tab_depth='z', tab_epsilon=
 
 def right_angle_bracket(length_base, length_face, width, thickness, bracket_frac=0.6):
     """
-    Creates a right angle bracket -- not finished yet. 
+    Creates a right angle bracket -- not finished yet.
     """
     base = Cube(size=[length_base, width, thickness])
     face = Cube(size=[length_face, width, thickness])
@@ -367,7 +370,7 @@ def right_angle_bracket(length_base, length_face, width, thickness, bracket_frac
     y_shift = 0.5*width-0.5*thickness
     bracket_pos = Translate(bracket,v=[0,y_shift,0])
     bracket_neg = Translate(bracket,v=[0,-y_shift,0])
-    
+
     base.mod = '%'
     face.mod = '%'
     return [base,face,bracket_pos,bracket_neg]

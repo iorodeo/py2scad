@@ -8,3 +8,8 @@ syntax: glob
 *.stl
 *.pkl
 *.dxf
+*.komodo*
+*.egg-info
+build
+dist
+.komodo*
