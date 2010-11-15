@@ -54,11 +54,12 @@ class SCAD_Prog(object):
 class SCAD_Object(object):
     """Scad object wrapper base class."""
 
-    def __init__(self,center=True,mod=''):
+    def __init__(self, center=True, mod='', comment=''):
         self.type = None    # ?
         self.center = center# Centered or positive quadrent
         self.cmp = False    # Is compound
         self.mod = mod      # Rendering modifier (*,%,#,!)
+        self.comment = comment  # A comment to add to the output file
 
     def center_str(self):
         return str(self.center).lower()
@@ -72,7 +73,11 @@ class SCAD_Object(object):
     def __str__(self,tab_level=0):
         tab_str = ' '*TAB_WIDTH*tab_level
         mod_str = self.mod
-        return '%s%s%s'%(tab_str, mod_str, self.cmd_str(tab_level=tab_level))
+        comment = ''
+        if self.comment:
+            comment = tab_str + '// ' + self.comment + '\n'
+        return '{0}{1}{2}{3}'.format(comment, tab_str, mod_str,
+                               self.cmd_str(tab_level=tab_level))
 
     def write(self, filename, fn=None):
         outfile = open(filename,'w')
@@ -84,8 +89,8 @@ class SCAD_Object(object):
 class SCAD_CMP_Object(SCAD_Object):
     """Scad compound object wrapper base class."""
 
-    def __init__(self, obj, center=True, mod=''):
-        SCAD_Object.__init__(self, center=center, mod=mod)
+    def __init__(self, obj, center=True, mod='', comment=''):
+        SCAD_Object.__init__(self, center=center, mod=mod, comment=comment)
         self.cmp = True
         #self.obj = obj
         if type(obj) == list:
@@ -98,8 +103,7 @@ class SCAD_CMP_Object(SCAD_Object):
 
     def __str__(self, tab_level=0):
         tab_str = ' '*TAB_WIDTH*tab_level
-        mod_str = self.mod
-        rtn_str = '%s%s%s'%(tab_str, mod_str, self.cmd_str())
+        rtn_str = SCAD_Object.__str__(self, tab_level=tab_level)
         rtn_str = '%s {\n'%(rtn_str,)
         for obj in self.obj:
             rtn_str = '%s%s\n'%(rtn_str,obj.__str__(tab_level=tab_level+1))
