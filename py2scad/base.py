@@ -19,13 +19,19 @@ class SCAD_Prog(object):
     """Wrapper for Openscad program."""
 
     def __init__(self, fn=None, fa=None, fs=None):
+        self.module_list = []
         self.objlist = []
         # Global facet settings
         self.fn = fn
         self.fa = fa
         self.fs = fs
 
+    def module(self, obj, **kwargs):
+        """Do something terribly clever to parameterize an object..."""
+        pass
+
     def add(self, obj):
+        """Add a scad object to this program container."""
         if type(obj) == list:
             self.objlist.extend(obj)
         else:
@@ -40,8 +46,11 @@ class SCAD_Prog(object):
         if not self.fs == None:
             rtn_str = '%s$fs = %d;\n'%(rtn_str, self.fs)
 
+        for mod in self.module_list:
+            rtn_str = "{0}{1}\n\n".format(rtn_str, mod)
+
         for obj in self.objlist:
-            rtn_str = '%s%s\n'%(rtn_str,obj)
+            rtn_str = '%s%s\n\n'%(rtn_str,obj)
 
         return rtn_str
 
@@ -54,11 +63,12 @@ class SCAD_Prog(object):
 class SCAD_Object(object):
     """Scad object wrapper base class."""
 
-    def __init__(self,center=True,mod=''):
+    def __init__(self, center=True, mod='', comment=''):
         self.type = None    # ?
         self.center = center# Centered or positive quadrent
         self.cmp = False    # Is compound
         self.mod = mod      # Rendering modifier (*,%,#,!)
+        self.comment = comment  # A comment to add to the output file
 
     def center_str(self):
         return str(self.center).lower()
@@ -72,7 +82,11 @@ class SCAD_Object(object):
     def __str__(self,tab_level=0):
         tab_str = ' '*TAB_WIDTH*tab_level
         mod_str = self.mod
-        return '%s%s%s'%(tab_str, mod_str, self.cmd_str(tab_level=tab_level))
+        comment = ''
+        if self.comment:
+            comment = tab_str + '// ' + self.comment + '\n'
+        return '{0}{1}{2}{3}'.format(comment, tab_str, mod_str,
+                               self.cmd_str(tab_level=tab_level))
 
     def write(self, filename, fn=None):
         outfile = open(filename,'w')
@@ -84,8 +98,8 @@ class SCAD_Object(object):
 class SCAD_CMP_Object(SCAD_Object):
     """Scad compound object wrapper base class."""
 
-    def __init__(self, obj, center=True, mod=''):
-        SCAD_Object.__init__(self, center=center, mod=mod)
+    def __init__(self, obj, center=True, mod='', comment=''):
+        SCAD_Object.__init__(self, center=center, mod=mod, comment=comment)
         self.cmp = True
         #self.obj = obj
         if type(obj) == list:
@@ -98,11 +112,13 @@ class SCAD_CMP_Object(SCAD_Object):
 
     def __str__(self, tab_level=0):
         tab_str = ' '*TAB_WIDTH*tab_level
-        mod_str = self.mod
-        rtn_str = '%s%s%s'%(tab_str, mod_str, self.cmd_str())
+        rtn_str = SCAD_Object.__str__(self, tab_level=tab_level)
         rtn_str = '%s {\n'%(rtn_str,)
         for obj in self.obj:
-            rtn_str = '%s%s\n'%(rtn_str,obj.__str__(tab_level=tab_level+1))
+            try:
+                rtn_str = '%s%s\n'%(rtn_str,obj.__str__(tab_level=tab_level+1))
+            except: # Assume obj is str, otherwise it is converted...
+                rtn_str = "{0}{1}\n".format(rtn_str, (" "*(TAB_WIDTH*tab_level+1))+obj)
         rtn_str = '%s%s}'%(rtn_str,tab_str,)
 
         return rtn_str

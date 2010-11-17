@@ -20,22 +20,19 @@ import utility
 
 class Cube(base.SCAD_Object):
 
-    def __init__(self, size=1.0, center=True, mod=''):
-        base.SCAD_Object.__init__(self,center=center,mod=mod)
-        try:
-            self.size = float(size)
-        except:
-            self.size = utility.float_list3(size)
+    def __init__(self, size=1.0, center=True, *args, **kwargs):
+        base.SCAD_Object.__init__(self, center=center, *args, **kwargs)
+        self.size = size
 
     def cmd_str(self,tab_level=0):
         size_str = utility.val_to_str(self.size)
         center_str = self.center_str()
-        return 'cube(size=%s,center=%s);'%(size_str,center_str)
+        return 'cube(size=%s,center=%s);'%(size_str, center_str)
 
 class Sphere(base.SCAD_Object):
 
-    def __init__(self, r=1.0, center=True,mod=''):
-        base.SCAD_Object.__init__(self,center=center,mod=mod)
+    def __init__(self, r=1.0, center=True, *args, **kwargs):
+        base.SCAD_Object.__init__(self, center=center, *args, **kwargs)
         self.r = float(r)
 
     def cmd_str(self,tab_level=0):
@@ -45,8 +42,8 @@ class Sphere(base.SCAD_Object):
 
 class Cylinder(base.SCAD_Object):
 
-    def __init__(self, h=1.0, r1=1.0, r2=None, center=True, mod=''):
-        base.SCAD_Object.__init__(self,center=center,mod=mod)
+    def __init__(self, h=1.0, r1=1.0, r2=None, center=True, *args, **kwargs):
+        base.SCAD_Object.__init__(self, center=center, *args, **kwargs)
         self.h = float(h)
         self.r1 = float(r1)
         # r2 is optional
@@ -65,8 +62,8 @@ class Cylinder(base.SCAD_Object):
 
 class Polyhedron(base.SCAD_Object):
 
-    def __init__(self, points, faces, center=True, mod=''):
-        base.SCAD_Object.__init__(self,center=center,mod=mod)
+    def __init__(self, points, faces, center=True, *args, **kwargs):
+        base.SCAD_Object.__init__(self, center=center, *args, **kwargs)
         self.points = [utility.float_list3(x) for x in points]
         self.faces = [utility.float_list(x) for x in faces]
 
@@ -89,8 +86,8 @@ class Polyhedron(base.SCAD_Object):
 
 class Import_STL(base.SCAD_Object):
 
-    def __init__(self, filename, convexity=5,mod=''):
-        base.SCAD_Object.__init__(self,mod=mod)
+    def __init__(self, filename, convexity=5, *args, **kwargs):
+        base.SCAD_Object.__init__(self, *args, **kwargs)
         self.filename = filename
         self.convexity = convexity
 
@@ -101,8 +98,8 @@ class Import_STL(base.SCAD_Object):
 
 class Circle(base.SCAD_Object):
 
-    def __init__(self,r=1,mod=''):
-        base.SCAD_Object.__init__(self,mod=mod)
+    def __init__(self, r=1, *args, **kwargs):
+        base.SCAD_Object.__init__(self, *args, **kwargs)
         self.r = float(r)
 
     def cmd_str(self,tab_level=0):
@@ -112,8 +109,8 @@ class Circle(base.SCAD_Object):
 
 class Square(base.SCAD_Object):
 
-    def __init__(self,size=[1,1],center=True, mod=''):
-        base.SCAD_Object.__init__(self,center=center,mod=mod)
+    def __init__(self, size=[1,1], center=True, *args, **kwargs):
+        base.SCAD_Object.__init__(self, center=center, *args, **kwargs)
         self.size = utility.float_list2(size)
 
     def cmd_str(self,tab_level=0):
@@ -123,8 +120,8 @@ class Square(base.SCAD_Object):
 
 class Polygon(base.SCAD_Object):
 
-    def __init__(self,points,paths,mod=''):
-        base.SCAD_Object.__init__(self,mod=mod)
+    def __init__(self, points, paths, *args, **kwargs):
+        base.SCAD_Object.__init__(self, *args, **kwargs)
         self.points = [utility.float_list2(p) for p in points]
         self.paths = [utility.float_list(p) for p in paths]
 
