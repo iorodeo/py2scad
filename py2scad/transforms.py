@@ -16,12 +16,32 @@ limitations under the License.
 import base
 import utility
 
+# Assembly creation ----------------------------------------------------------
+
+class Assembly(base.SCAD_CMP_Object):
+    """Create a reusable assembly (module) object."""
+    def __init__(self, obj, name, parameters=[], *args, **kwargs):
+        base.SCAD_CMP_Object.__init__(self, obj, **kwargs)
+        self.name = name
+        # Filter out any non-string arguments (unicode removed from py3)
+        self.args = tuple([arg for arg in args if type(arg) == str])
+
+    def cmd_str(self,tab_level=0):
+        """Outputs the module signature."""
+        return 'module {0}({1})'.format(self.name, ', '.join(arg for arg in self.args))
+
+    def __call__(self, *args):
+        """Returns a string calling this module with provided arguments."""
+        if len(args) > len(self.args):
+            raise TypeError("{0}() takes exactly {1} argument(s) ({2} given)".format(self.name, len(self.args), len(args)))
+        return "{0}({1});".format(self.name, ', '.join(arg for arg in args))
+
 # 3D transformations ---------------------------------------------------------
 
 class Scale(base.SCAD_CMP_Object):
     """Scale contained object along local x,y,z."""
-    def __init__(self,obj,v=[1.0,1.0,1.0], mod=''):
-        base.SCAD_CMP_Object.__init__(self, obj, mod=mod)
+    def __init__(self,obj,v=[1.0,1.0,1.0], *args, **kwargs):
+        base.SCAD_CMP_Object.__init__(self, obj, *args, **kwargs)
         self.v = utility.float_list3(v)
 
     def cmd_str(self,tab_level=0):
@@ -31,8 +51,8 @@ class Scale(base.SCAD_CMP_Object):
 class Rotate(base.SCAD_CMP_Object):
     """Rotate contained objects."""
 
-    def __init__(self, obj, v=[1.0,0.0,0.0], a=None, mod=''):
-        base.SCAD_CMP_Object.__init__(self,obj,mod=mod)
+    def __init__(self, obj, v=[1.0,0.0,0.0], a=None, *args, **kwargs):
+        base.SCAD_CMP_Object.__init__(self, obj, *args, **kwargs)
         self.v = utility.float_list3(v)
         self.a = a
 
@@ -47,8 +67,8 @@ class Rotate(base.SCAD_CMP_Object):
 
 class AnimRotate(base.SCAD_CMP_Object):
 
-    def __init__(self,obj,a=0.0,v=[0.0,0.0,0.0],mod=''):
-        base.SCAD_CMP_Object.__init__(self,obj,mod=mod)
+    def __init__(self,obj,a=0.0,v=[0.0,0.0,0.0], *args, **kwargs):
+        base.SCAD_CMP_Object.__init__(self, obj, *args, **kwargs)
         self.a = a
         self.v = v
 
@@ -57,8 +77,8 @@ class AnimRotate(base.SCAD_CMP_Object):
 
 class Translate(base.SCAD_CMP_Object):
 
-    def __init__(self,obj,v=[0.0,0.0,0.0],mod=''):
-        base.SCAD_CMP_Object.__init__(self,obj,mod=mod)
+    def __init__(self,obj,v=[0.0,0.0,0.0], *args, **kwargs):
+        base.SCAD_CMP_Object.__init__(self, obj, *args, **kwargs)
         self.v = utility.float_list3(v)
 
     def cmd_str(self,tab_level=0):
@@ -67,8 +87,8 @@ class Translate(base.SCAD_CMP_Object):
 
 class AnimTranslate(base.SCAD_CMP_Object):
 
-    def __init__(self,obj,v=[0.0,0.0,0.0],mod=''):
-        base.SCAD_CMP_Object.__init__(self,obj,mod=mod)
+    def __init__(self,obj,v=[0.0,0.0,0.0], *args, **kwargs):
+        base.SCAD_CMP_Object.__init__(self, obj, *args, **kwargs)
         self.v = v
 
     def cmd_str(self,tab_level=0):
@@ -76,8 +96,8 @@ class AnimTranslate(base.SCAD_CMP_Object):
 
 class Mirror(base.SCAD_CMP_Object):
 
-    def __init__(self,obj,v=[1.0,0.0,0.0],mod=''):
-        base.SCAD_CMP_Object.__init__(self,obj,mod=mod)
+    def __init__(self,obj,v=[1.0,0.0,0.0], *args, **kwargs):
+        base.SCAD_CMP_Object.__init__(self, obj, *args, **kwargs)
         self.v = utility.float_list3(v)
 
     def cmd_str(self,tab_level=0):
@@ -91,13 +111,13 @@ class MultMatrix(base.SCAD_CMP_Object):
     #######################################
 
     def __init__(self,obj):
-        base.SCAD_CMP_Object.__init__(self,obj,mod=mod)
+        base.SCAD_CMP_Object.__init__(self, obj, *args, **kwargs)
         pass
 
 class Color(base.SCAD_CMP_Object):
 
-    def __init__(self,obj,rgba=[0.5, 0.5, 0.5, 1.0],mod=''):
-        base.SCAD_CMP_Object.__init__(self,obj,mod=mod)
+    def __init__(self,obj,rgba=[0.5, 0.5, 0.5, 1.0], *args, **kwargs):
+        base.SCAD_CMP_Object.__init__(self, obj, *args, **kwargs)
         self.rgba = utility.float_list4(rgba)
         assert self.rgba_ok(), 'rgba values must be in [0,1]'
 
@@ -132,8 +152,9 @@ class Intersection(base.SCAD_CMP_Object):
 
 class Linear_Extrude(base.SCAD_CMP_Object):
 
-    def __init__(self,obj,h=1, twist=0, center=True, mod='', convexity=5,slices=None):
-        base.SCAD_CMP_Object.__init__(self,obj,center=center,mod=mod)
+    def __init__(self,obj,h=1, twist=0, center=True, convexity=5,
+                 slices=None, *args, **kwargs):
+        base.SCAD_CMP_Object.__init__(self,obj,center=center,mod=mod, *args, **kwargs)
         self.h = float(h)
         self.twist = float(twist)
         self.convexity = int(convexity)
@@ -156,8 +177,9 @@ class Linear_Extrude(base.SCAD_CMP_Object):
 
 class Linear_DXF_Extrude(base.SCAD_Object):
 
-    def __init__(self,filename,height=1.0,layer=None,center=True,convexity=10,twist=0,mod=''):
-        base.SCAD_Object.__init__(self,center=center,mod=mod)
+    def __init__(self, filename, height=1.0, layer=None, center=True,
+                 convexity=10, twist=0, *args, **kwargs):
+        base.SCAD_Object.__init__(self, center=center, *args, **kwargs)
         self.filename = filename
         self.height = float(height)
         self.layer = layer
@@ -176,8 +198,8 @@ class Linear_DXF_Extrude(base.SCAD_Object):
 
 class Rotate_Extrude(base.SCAD_CMP_Object):
 
-    def __init__(self,obj,convexity=5,mod=''):
-        base.SCAD_CMP_Object.__init__(self,obj,mod=mod)
+    def __init__(self,obj,convexity=5, *args, **kwargs):
+        base.SCAD_CMP_Object.__init__(self, obj, *args, **kwargs)
         self.convexity = convexity
 
     def cmd_str(self,tab_level=0):
@@ -189,8 +211,8 @@ class Rotate_Extrude(base.SCAD_CMP_Object):
 
 class Projection(base.SCAD_CMP_Object):
 
-    def __init__(self,obj,cut=True,mod=''):
-        base.SCAD_CMP_Object.__init__(self,obj,mod=mod)
+    def __init__(self,obj,cut=True, *args, **kwargs):
+        base.SCAD_CMP_Object.__init__(self, obj, *args, **kwargs)
         self.cut = cut
 
     def cmd_str(self,tab_level=0):

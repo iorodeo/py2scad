@@ -43,25 +43,23 @@ def float_list(v):
     _v = [float(x) for x in _v]
     return _v
 
-def val_to_str(x,tab_level=0):
-    tab_str = ''
-    if tab_level:
-        tab_str = ' '*TAB_WIDTH*tab_level
-    if type(x) == float:
-        x_str = '%s%f'%(tab_str,x,)
-    else:
-        x_str = '%s['%(tab_str,)
-        cnt = 0
-        for i,y in enumerate(x):
-            x_str = '%s%s'%(x_str,val_to_str(y))
-            if i < len(x)-1:
-                x_str = '%s, '%(x_str,)
-            cnt += 1
-            if cnt >= 8:
-                cnt = 0
-                x_str = '%s\n%s'%(x_str,tab_str)
-        x_str = '%s]'%(x_str,)
-    return x_str
+def val_to_str(val ,tab_level=0):
+    """Ensure misc values are nicely formatted."""
+    tab_str = '' + ' '*TAB_WIDTH*tab_level
+    if type(val) == str:
+        return tab_str + val
+    try: # For sequence types produce a comma seperated listing
+        iter(val) # prescribed way to check for iteration...
+        # Just because I like the fixed width numbers
+        str_val = list()
+        for item in val:
+            if type(item) != str: # Format as float, five decimals precision
+                item = "{0:0.5f}".format(item)
+            str_val.append(item)
+        return tab_str + '[' + ', '.join("{0}".format(item) for item in str_val) + ']'
+    except TypeError: # Format as float, five decimals precision
+        return tab_str + "{0:0.5f}".format(val)
+
 
 def write_obj_list(obj_list, filename, fn=100):
     fid = open(filename,'w')
