@@ -16,6 +16,40 @@ limitations under the License.
 import base
 import utility
 
+# Variable delcaration -------------------------------------------------------
+
+class Variables(dict):
+    """Group variable declarations for inclusion in output file."""
+    # Any constructor kwargs become variables
+    # Attribute getter returns the varaible name
+    # Attribute setter sets variable value
+    # cmd_str method returns variable definition in scad syntax
+    def __init__(self, **kwargs):
+        dict.__init__(self, kwargs)
+        self._initialised = True
+
+    def __getattr__(self, name):
+        """Return the openscad representation of the indicated variable."""
+        if name in self:
+            return name
+        raise AttributeError(name)
+
+    def __setattr__(self, name, value):
+        """Change the value of the named variable."""
+        if not self.__dict__.has_key('_initialised'):  # this test allows attributes to be set in the __init__ method
+            return dict.__setattr__(self, name, value)
+        elif name in self: # any normal attributes are handled normally
+            dict.__setattr__(self, name, value)
+        else:
+            self.__setitem__(name, value)
+
+    def cmd_str(self, tab_level=0):
+        tab_str = ' '*utility.TAB_WIDTH*tab_level
+        rtn_str = '\n'
+        for k,v in self.items():
+            rtn_str += '{0} = {1};\n'.format(k, utility.val_to_str(v))
+        return rtn_str + '\n'
+
 # 3D primitives ---------------------------------------------------------------
 
 class Cube(base.SCAD_Object):
@@ -33,7 +67,7 @@ class Sphere(base.SCAD_Object):
 
     def __init__(self, r=1.0, center=True, *args, **kwargs):
         base.SCAD_Object.__init__(self, center=center, *args, **kwargs)
-        self.r = float(r)
+        self.r = r
 
     def cmd_str(self,tab_level=0):
         r_str = utility.val_to_str(self.r)
@@ -44,12 +78,10 @@ class Cylinder(base.SCAD_Object):
 
     def __init__(self, h=1.0, r1=1.0, r2=None, center=True, *args, **kwargs):
         base.SCAD_Object.__init__(self, center=center, *args, **kwargs)
-        self.h = float(h)
-        self.r1 = float(r1)
+        self.h = h
+        self.r1 = r1
         # r2 is optional
         self.r2 = r2
-        if r2:
-            self.r2 = float(r2)
 
     def cmd_str(self,tab_level=0):
         center_str = self.center_str()
@@ -57,7 +89,11 @@ class Cylinder(base.SCAD_Object):
         r1_str = utility.val_to_str(self.r1)
         if self.r2:
             r2_str = utility.val_to_str(self.r2)
-            return 'cylinder(h=%s,r1=%s,r2=%s,center=%s);'%(h_str, r1_str, r2_str, center_str)
+            return 'cylinder(h={0},r1={1},r2={2},center={3});'.format(h_str,
+                                                                      r1_str,
+                                                                      r2_str,
+                                                                      center_str)
+        # When Cylinder is constant radius the argument is just called 'r'
         return 'cylinder(h=%s,r=%s,center=%s);'%(h_str, r1_str, center_str)
 
 class Polyhedron(base.SCAD_Object):
@@ -92,7 +128,7 @@ class Import_STL(base.SCAD_Object):
         self.convexity = convexity
 
     def cmd_str(self,tab_level=0):
-        return 'import_stl("%s",convexity=%d);'%(self.filename,self.convexity)
+        return 'import_stl("{0.filename}",convexity={0.convexity:d});'.format(self)
 
 # 2D primatives ---------------------------------------------------------------
 
@@ -100,18 +136,18 @@ class Circle(base.SCAD_Object):
 
     def __init__(self, r=1, *args, **kwargs):
         base.SCAD_Object.__init__(self, *args, **kwargs)
-        self.r = float(r)
+        self.r = r
 
     def cmd_str(self,tab_level=0):
         r_str = utility.val_to_str(self.r)
-        rtn_str = 'circle(r=%s);'%(r_str,)
+        rtn_str = 'circle(r={0});'.format(r_str)
         return rtn_str
 
 class Square(base.SCAD_Object):
 
     def __init__(self, size=[1,1], center=True, *args, **kwargs):
         base.SCAD_Object.__init__(self, center=center, *args, **kwargs)
-        self.size = utility.float_list2(size)
+        self.size = size
 
     def cmd_str(self,tab_level=0):
         size_str = utility.val_to_str(self.size)
@@ -141,3 +177,10 @@ class Polygon(base.SCAD_Object):
         rtn_str = '%s%s]\n'%(rtn_str,tab_str1,)
         rtn_str = '%s%s);\n'%(rtn_str,tab_str0)
         return rtn_str
+
+if __name__ == "__main__":
+    v = Variables(foo=5)
+    v.bar = [10, 2, 4]
+    v.baz = "strings aren't usefull yet!"
+    print("{0.foo}, {0.bar}, {0.baz}".format(v))
+    print(v.cmd_str())
