@@ -24,7 +24,7 @@ class Assembly(base.SCAD_CMP_Object):
         base.SCAD_CMP_Object.__init__(self, obj, **kwargs)
         self.name = name
         # Filter out any non-string arguments (unicode removed from py3)
-        self.args = tuple([arg for arg in args if type(arg) == str])
+        self.args = parameters
 
     def cmd_str(self,tab_level=0):
         """Outputs the module signature."""
@@ -34,7 +34,8 @@ class Assembly(base.SCAD_CMP_Object):
         """Returns a string calling this module with provided arguments."""
         if len(args) > len(self.args):
             raise TypeError("{0}() takes exactly {1} argument(s) ({2} given)".format(self.name, len(self.args), len(args)))
-        return "{0}({1});".format(self.name, ', '.join(arg for arg in args))
+        return "{0}({1});".format(self.name,
+                ', '.join(utility.val_to_str(arg) for arg in args))
 
 # 3D transformations ---------------------------------------------------------
 
@@ -42,7 +43,7 @@ class Scale(base.SCAD_CMP_Object):
     """Scale contained object along local x,y,z."""
     def __init__(self,obj,v=[1.0,1.0,1.0], *args, **kwargs):
         base.SCAD_CMP_Object.__init__(self, obj, *args, **kwargs)
-        self.v = utility.float_list3(v)
+        self.v = v
 
     def cmd_str(self,tab_level=0):
         v_str = utility.val_to_str(self.v)
@@ -53,7 +54,7 @@ class Rotate(base.SCAD_CMP_Object):
 
     def __init__(self, obj, v=[1.0,0.0,0.0], a=None, *args, **kwargs):
         base.SCAD_CMP_Object.__init__(self, obj, *args, **kwargs)
-        self.v = utility.float_list3(v)
+        self.v = v
         self.a = a
 
     def cmd_str(self,tab_level=0):
@@ -79,7 +80,7 @@ class Translate(base.SCAD_CMP_Object):
 
     def __init__(self,obj,v=[0.0,0.0,0.0], *args, **kwargs):
         base.SCAD_CMP_Object.__init__(self, obj, *args, **kwargs)
-        self.v = utility.float_list3(v)
+        self.v = v
 
     def cmd_str(self,tab_level=0):
         v_str = utility.val_to_str(self.v)
@@ -98,7 +99,7 @@ class Mirror(base.SCAD_CMP_Object):
 
     def __init__(self,obj,v=[1.0,0.0,0.0], *args, **kwargs):
         base.SCAD_CMP_Object.__init__(self, obj, *args, **kwargs)
-        self.v = utility.float_list3(v)
+        self.v = v
 
     def cmd_str(self,tab_level=0):
         v_str = utility.val_to_str(self.v)
@@ -155,11 +156,11 @@ class Linear_Extrude(base.SCAD_CMP_Object):
     def __init__(self,obj,h=1, twist=0, center=True, convexity=5,
                  slices=None, *args, **kwargs):
         base.SCAD_CMP_Object.__init__(self,obj,center=center,mod=mod, *args, **kwargs)
-        self.h = float(h)
-        self.twist = float(twist)
-        self.convexity = int(convexity)
+        self.h = h
+        self.twist = twist
+        self.convexity = convexity
         try:
-            self.slices = int(slices)
+            self.slices = slices
         except TypeError:
             self.slices = None
 
@@ -181,10 +182,10 @@ class Linear_DXF_Extrude(base.SCAD_Object):
                  convexity=10, twist=0, *args, **kwargs):
         base.SCAD_Object.__init__(self, center=center, *args, **kwargs)
         self.filename = filename
-        self.height = float(height)
+        self.height = height
         self.layer = layer
-        self.twist = float(twist)
-        self.convexity = int(convexity)
+        self.twist = twist
+        self.convexity = convexity
 
     def cmd_str(self, tab_level=0):
         arg_str = 'file="%s"'%(self.filename,)

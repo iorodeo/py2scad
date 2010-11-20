@@ -24,7 +24,10 @@ class Variables(dict):
     # Attribute getter returns the varaible name
     # Attribute setter sets variable value
     # cmd_str method returns variable definition in scad syntax
-    def __init__(self, **kwargs):
+    def __init__(self, comment='', **kwargs):
+        self.comment = comment
+        if not comment:
+            self.comment = "Named variables //\n"
         dict.__init__(self, kwargs)
         self._initialised = True
 
@@ -45,10 +48,18 @@ class Variables(dict):
 
     def cmd_str(self, tab_level=0):
         tab_str = ' '*utility.TAB_WIDTH*tab_level
-        rtn_str = '\n'
+        rtn_str = ''
         for k,v in self.items():
-            rtn_str += '{0} = {1};\n'.format(k, utility.val_to_str(v))
+            rtn_str += '{0}{1} = {2};\n'.format(tab_str, k, utility.val_to_str(v))
         return rtn_str + '\n'
+
+    def __str__(self, tab_level=0):
+        tab_str = ' '*utility.TAB_WIDTH*tab_level
+        comment = ''
+        if self.comment:
+            comment = tab_str + '// ' + self.comment + '\n'
+        return '\n{0}{1}'.format(comment, self.cmd_str(tab_level=tab_level))
+
 
 # 3D primitives ---------------------------------------------------------------
 
@@ -100,8 +111,8 @@ class Polyhedron(base.SCAD_Object):
 
     def __init__(self, points, faces, center=True, *args, **kwargs):
         base.SCAD_Object.__init__(self, center=center, *args, **kwargs)
-        self.points = [utility.float_list3(x) for x in points]
-        self.faces = [utility.float_list(x) for x in faces]
+        self.points = points
+        self.faces = faces
 
     def cmd_str(self,tab_level=0):
         tab_str0 = ' '*utility.TAB_WIDTH*tab_level
@@ -158,8 +169,8 @@ class Polygon(base.SCAD_Object):
 
     def __init__(self, points, paths, *args, **kwargs):
         base.SCAD_Object.__init__(self, *args, **kwargs)
-        self.points = [utility.float_list2(p) for p in points]
-        self.paths = [utility.float_list(p) for p in paths]
+        self.points = points
+        self.paths = paths
 
     def cmd_str(self,tab_level=0):
         tab_str0 = ' '*utility.TAB_WIDTH*tab_level

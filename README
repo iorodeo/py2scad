@@ -6,20 +6,13 @@ py2sacd may just be the thing for you. py2scad is a simple python library which
 enables you write .scad files using python. py2scad is meant to be used in
 conjuction with Clifford Wolff's great OpenSCAD program (http://openscad.org/).
 Use py2scad to create the .scad version of your part and OpenSCAD to view your
-part as you create it. 
+part as you create it.
 
-Note, there are still some features that I need to implement: 
-
-* The fn, fa, fs character should work on the global level, but you can yet set
-  them for individual primatives as you can in openscad. 
-
-* The lookup table function hasn't been implemented. This will be especiallly 
-  useful for creating animations. 
+See TODO file for features under consideration/construction.
 
 Installations instructions can be found in the INSTALL file.
 
-Author: Will Dickson IO Rodeo Inc. 
+Author: Will Dickson IO Rodeo Inc.
 
 py2scad may be freely distributed and modified in accordance with the Apache
 2.0  License.
-

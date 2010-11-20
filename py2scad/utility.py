@@ -22,7 +22,7 @@ DEG2RAD = math.degrees
 RAD2DEG = math.radians
 
 # Utility functions -----------------------------------------------------------
-
+""" Depreciated!
 def float_list2(v):
     _v = float_list(v)
     assert len(_v) == 2, 'v must be convertable to a length2 list'
@@ -42,6 +42,7 @@ def float_list(v):
     _v = list(v)
     _v = [float(x) for x in _v]
     return _v
+"""
 
 def val_to_str(val ,tab_level=0):
     """Ensure misc values are nicely formatted."""

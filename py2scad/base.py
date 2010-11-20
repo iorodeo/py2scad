@@ -19,16 +19,11 @@ class SCAD_Prog(object):
     """Wrapper for Openscad program."""
 
     def __init__(self, fn=None, fa=None, fs=None):
-        self.module_list = []
         self.objlist = []
         # Global facet settings
         self.fn = fn
         self.fa = fa
         self.fs = fs
-
-    def module(self, obj, **kwargs):
-        """Do something terribly clever to parameterize an object..."""
-        pass
 
     def add(self, obj):
         """Add a scad object to this program container."""
@@ -45,9 +40,6 @@ class SCAD_Prog(object):
             rtn_str = '%s$fa = %d;\n'%(rtn_str, self.fa)
         if not self.fs == None:
             rtn_str = '%s$fs = %d;\n'%(rtn_str, self.fs)
-
-        for mod in self.module_list:
-            rtn_str = "{0}{1}\n\n".format(rtn_str, mod)
 
         for obj in self.objlist:
             rtn_str = '%s%s\n\n'%(rtn_str,obj)
