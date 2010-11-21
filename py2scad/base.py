@@ -55,12 +55,27 @@ class SCAD_Prog(object):
 class SCAD_Object(object):
     """Scad object wrapper base class."""
 
-    def __init__(self, center=True, mod='', comment=''):
+    def __init__(self, center=True, mod='', comment='', fa=None, fs=None, fn=None):
         self.type = None    # ?
         self.center = center# Centered or positive quadrent
         self.cmp = False    # Is compound
         self.mod = mod      # Rendering modifier (*,%,#,!)
         self.comment = comment  # A comment to add to the output file
+        # Per object facet settings
+        self.fa = fa
+        self.fs = fs
+        self.fn = fn
+
+    def facets(self):
+        """Return any facet arguments that are set."""
+        facets = ''
+        if self.fa:
+            facets += ", $fa={0}".format(self.fa)
+        if self.fs:
+            facets += ", $fs={0}".format(self.fs)
+        if self.fn:
+            facets += ", $fn={0}".format(self.fn)
+        return facets
 
     def center_str(self):
         return str(self.center).lower()

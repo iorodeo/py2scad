@@ -70,9 +70,12 @@ class Cube(base.SCAD_Object):
         self.size = size
 
     def cmd_str(self,tab_level=0):
+        facets = self.facets() # Retreve object facet information
         size_str = utility.val_to_str(self.size)
         center_str = self.center_str()
-        return 'cube(size=%s,center=%s);'%(size_str, center_str)
+        return 'cube(size={0}, center={1}{2});'.format(size_str,
+                                                       center_str,
+                                                       facets)
 
 class Sphere(base.SCAD_Object):
 
@@ -81,9 +84,12 @@ class Sphere(base.SCAD_Object):
         self.r = r
 
     def cmd_str(self,tab_level=0):
+        facets = self.facets() # Retreve object facet information
         r_str = utility.val_to_str(self.r)
         center_str = self.center_str()
-        return 'sphere(r=%s,center=%s);'%(r_str, center_str)
+        return 'sphere(r={0}, center={1}{2});'.format(r_str,
+                                                      center_str,
+                                                      facets)
 
 class Cylinder(base.SCAD_Object):
 
@@ -95,6 +101,7 @@ class Cylinder(base.SCAD_Object):
         self.r2 = r2
 
     def cmd_str(self,tab_level=0):
+        facets = self.facets() # Retreve object facet information
         center_str = self.center_str()
         h_str = utility.val_to_str(self.h)
         r1_str = utility.val_to_str(self.r1)
@@ -103,9 +110,13 @@ class Cylinder(base.SCAD_Object):
             return 'cylinder(h={0},r1={1},r2={2},center={3});'.format(h_str,
                                                                       r1_str,
                                                                       r2_str,
-                                                                      center_str)
+                                                                      center_str,
+                                                                      facets)
         # When Cylinder is constant radius the argument is just called 'r'
-        return 'cylinder(h=%s,r=%s,center=%s);'%(h_str, r1_str, center_str)
+        return 'cylinder(h={0},r={1},center={2}{3});'.format(h_str,
+                                                             r1_str,
+                                                             center_str,
+                                                             facets)
 
 class Polyhedron(base.SCAD_Object):
 
@@ -115,6 +126,7 @@ class Polyhedron(base.SCAD_Object):
         self.faces = faces
 
     def cmd_str(self,tab_level=0):
+        facets = self.facets() # Retreve object facet information
         tab_str0 = ' '*utility.TAB_WIDTH*tab_level
         tab_str1 = ' '*utility.TAB_WIDTH*(tab_level+1)
         rtn_str = 'polyhedron(\n'
@@ -128,6 +140,7 @@ class Polyhedron(base.SCAD_Object):
             p_str = utility.val_to_str(p,tab_level=tab_level+2)
             rtn_str = '%s%s,\n'%(rtn_str,p_str)
         rtn_str = '%s%s]\n'%(rtn_str,tab_str1,)
+        rtn_str += facets
         rtn_str = '%s%s);\n'%(rtn_str,tab_str0)
         return rtn_str
 
@@ -139,7 +152,8 @@ class Import_STL(base.SCAD_Object):
         self.convexity = convexity
 
     def cmd_str(self,tab_level=0):
-        return 'import_stl("{0.filename}",convexity={0.convexity:d});'.format(self)
+        facets = self.facets() # Retreve object facet information
+        return 'import_stl("{0.filename}",convexity={0.convexity:d}{1});'.format(self, facets)
 
 # 2D primatives ---------------------------------------------------------------
 
@@ -150,8 +164,9 @@ class Circle(base.SCAD_Object):
         self.r = r
 
     def cmd_str(self,tab_level=0):
+        facets = self.facets() # Retreve object facet information
         r_str = utility.val_to_str(self.r)
-        rtn_str = 'circle(r={0});'.format(r_str)
+        rtn_str = 'circle(r={0}{1});'.format(r_str, facets)
         return rtn_str
 
 class Square(base.SCAD_Object):
@@ -161,9 +176,12 @@ class Square(base.SCAD_Object):
         self.size = size
 
     def cmd_str(self,tab_level=0):
+        facets = self.facets() # Retreve object facet information
         size_str = utility.val_to_str(self.size)
         center_str = self.center_str()
-        return 'square(size=%s,center=%s);'%(size_str,center_str)
+        return 'square(size={0}, center={1}{2});'.format(size_str,
+                                                        center_str,
+                                                        facets)
 
 class Polygon(base.SCAD_Object):
 
@@ -173,6 +191,7 @@ class Polygon(base.SCAD_Object):
         self.paths = paths
 
     def cmd_str(self,tab_level=0):
+        facets = self.facets() # Retreve object facet information
         tab_str0 = ' '*utility.TAB_WIDTH*tab_level
         tab_str1 = ' '*utility.TAB_WIDTH*(tab_level+1)
         rtn_str = 'polygon(\n'
@@ -186,6 +205,7 @@ class Polygon(base.SCAD_Object):
             p_str = utility.val_to_str(p,tab_level=tab_level+2)
             rtn_str = '%s%s,\n'%(rtn_str,p_str)
         rtn_str = '%s%s]\n'%(rtn_str,tab_str1,)
+        rtn_str += facets
         rtn_str = '%s%s);\n'%(rtn_str,tab_str0)
         return rtn_str
 
@@ -194,4 +214,4 @@ if __name__ == "__main__":
     v.bar = [10, 2, 4]
     v.baz = "strings aren't usefull yet!"
     print("{0.foo}, {0.bar}, {0.baz}".format(v))
-    print(v.cmd_str())
+    print(v)
