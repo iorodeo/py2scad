@@ -30,11 +30,14 @@ class Assembly(base.SCAD_CMP_Object):
         """Outputs the module signature."""
         return 'module {0}({1})'.format(self.name, ', '.join(arg for arg in self.args))
 
-    def __call__(self, *args):
+    def __call__(self, mod='', *args):
         """Returns a string calling this module with provided arguments."""
+        if not mod in '*!#%'.split(): # mod can eat he first arg
+            args = (mod,) + args
+            mod = ''
         if len(args) > len(self.args):
             raise TypeError("{0}() takes exactly {1} argument(s) ({2} given)".format(self.name, len(self.args), len(args)))
-        return "{0}({1});".format(self.name,
+        return "{0}{1}({2});".format(mod, self.name,
                 ', '.join(utility.val_to_str(arg) for arg in args))
 
 # 3D transformations ---------------------------------------------------------

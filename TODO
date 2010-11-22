@@ -12,7 +12,6 @@ How does scad animation work?
 
 Implement lookup table function, this will be especiallly useful
     for creating animations.
-Add fn, fa, fs controls for individual primatives.
 
 ############################## Ed ###############################
 

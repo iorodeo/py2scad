@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from utility import TAB_WIDTH
+from utility import TAB_WIDTH, val_to_str
 
 class SCAD_Prog(object):
     """Wrapper for Openscad program."""
@@ -55,7 +55,8 @@ class SCAD_Prog(object):
 class SCAD_Object(object):
     """Scad object wrapper base class."""
 
-    def __init__(self, center=True, mod='', comment='', fa=None, fs=None, fn=None):
+    def __init__(self, center=True, mod='', comment='',
+                 fa=None, fs=None, fn=None, translate=None):
         self.type = None    # ?
         self.center = center# Centered or positive quadrent
         self.cmp = False    # Is compound
@@ -65,6 +66,8 @@ class SCAD_Object(object):
         self.fa = fa
         self.fs = fs
         self.fn = fn
+        # Integrated transform
+        self.translate = translate
 
     def facets(self):
         """Return any facet arguments that are set."""
@@ -92,8 +95,12 @@ class SCAD_Object(object):
         comment = ''
         if self.comment:
             comment = tab_str + '// ' + self.comment + '\n'
-        return '{0}{1}{2}{3}'.format(comment, tab_str, mod_str,
+        rtn_str = '{0}{1}{2}'.format(tab_str, mod_str,
                                self.cmd_str(tab_level=tab_level))
+        if self.translate:
+            translate = tab_str + "translate(" + val_to_str(self.translate)
+            rtn_str = translate + ") {\n" + ' '*TAB_WIDTH + rtn_str + "\n}"
+        return comment + rtn_str
 
     def write(self, filename, fn=None):
         outfile = open(filename,'w')
@@ -125,7 +132,7 @@ class SCAD_CMP_Object(SCAD_Object):
             try:
                 rtn_str = '%s%s\n'%(rtn_str,obj.__str__(tab_level=tab_level+1))
             except: # Assume obj is str, otherwise it is converted...
-                rtn_str = "{0}{1}\n".format(rtn_str, (" "*(TAB_WIDTH*tab_level+1))+obj)
+                rtn_str = "{0}{1}\n".format(rtn_str, (" "*(TAB_WIDTH*tab_level+1))+str(obj))
         rtn_str = '%s%s}'%(rtn_str,tab_str,)
 
         return rtn_str
