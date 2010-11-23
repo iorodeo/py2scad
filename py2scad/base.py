@@ -72,12 +72,12 @@ class SCAD_Object(object):
     def facets(self):
         """Return any facet arguments that are set."""
         facets = ''
+        if self.fn: # $fn is exclusive!
+            return ", $fn={0}".format(self.fn)
         if self.fa:
             facets += ", $fa={0}".format(self.fa)
         if self.fs:
             facets += ", $fs={0}".format(self.fs)
-        if self.fn:
-            facets += ", $fn={0}".format(self.fn)
         return facets
 
     def center_str(self):
@@ -87,7 +87,7 @@ class SCAD_Object(object):
         return self.cmp
 
     def cmd_str(self,tab_level=0):
-        return 'Empty SCAD_Object'
+        return 'SCAD_Object'
 
     def __str__(self,tab_level=0):
         tab_str = ' '*TAB_WIDTH*tab_level
@@ -122,7 +122,7 @@ class SCAD_CMP_Object(SCAD_Object):
             self.obj = [obj]
 
     def cmd_str(self, tab_level=0):
-        return 'Empty SCAD_CMP_Object'
+        return 'SCAD_CMP_Object'
 
     def __str__(self, tab_level=0):
         tab_str = ' '*TAB_WIDTH*tab_level
