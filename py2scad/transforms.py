@@ -32,7 +32,7 @@ class Assembly(base.SCAD_CMP_Object):
 
     def __call__(self, mod='', *args):
         """Returns a string calling this module with provided arguments."""
-        if not mod in '*!#%'.split(): # mod can eat he first arg
+        if mod and not mod in list('*!#%'): # mod can eat he first arg
             args = (mod,) + args
             mod = ''
         if len(args) > len(self.args):
