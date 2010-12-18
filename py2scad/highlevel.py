@@ -279,7 +279,7 @@ def right_triangle(x,y,z):
     rect_base = Cube(size=[x,y,z])
     rect_diff = Cube(size=[2*numpy.sqrt(x**2+y**2),y,2*z])
     rect_diff = Translate(rect_diff,v=[0,0.5*y,0])
-    theta = -numpy.arctan2(y,x)*RAD2DEG
+    theta = -RAD2DEG(numpy.arctan2(y,x))
     rect_diff = Rotate(rect_diff,a=theta,v=[0,0,1])
     triangle = Difference([rect_base,rect_diff])
     triangle = Translate(triangle,v=[0.5*x, 0.5*y, 0])
@@ -372,6 +372,6 @@ def right_angle_bracket(length_base, length_face, width, thickness, num_x_tabs=2
     bracket_pos = Translate(bracket,v=[0,y_shift,0])
     bracket_neg = Translate(bracket,v=[0,-y_shift,0])
 
-    base.mod = '%'
-    face.mod = '%'
+    #base.mod = '%'
+    #face.mod = '%'
     return [base,face,bracket_pos,bracket_neg]

@@ -18,8 +18,10 @@ import math
 TAB_WIDTH = 4
 #DEG2RAD = math.pi/180.0
 #RAD2DEG = 180.0/math.pi
-DEG2RAD = math.degrees
-RAD2DEG = math.radians
+#DEG2RAD = math.degrees
+#RAD2DEG = math.radians
+DEG2RAD = math.radians
+RAD2DEG = math.degrees
 
 # Utility functions -----------------------------------------------------------
 """ Depreciated!
