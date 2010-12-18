@@ -22,6 +22,509 @@ from transforms import *
 from utility import DEG2RAD
 from utility import RAD2DEG
 
+INCH2MM = 25.4
+
+class Basic_Enclosure(object):
+
+    """
+    Creates a basic tabbed enclosure for laser cutting. The enclosure is designed
+    to be help together without any gluing (or solvent welding) using standoffs.
+
+    Need to add more documentaion on how to use this class ...
+    """
+
+    def __init__(self, params):
+        self.params = params
+
+    def __make_top_and_bottom(self):
+        """
+        Create top and bottom panels of the enclosure. 
+        """
+        inner_x, inner_y, inner_z = self.params['inner_dimensions']
+        wall_thickness = self.params['wall_thickness']
+        top_x_overhang = self.params['top_x_overhang']
+        top_y_overhang = self.params['top_y_overhang']
+        bottom_x_overhang = self.params['bottom_x_overhang']
+        bottom_y_overhang = self.params['bottom_y_overhang']
+        lid_radius = self.params['lid_radius']
+
+        # Add slots for tabs 
+        slot_list = []
+        lid2front_tab_width = self.params['lid2front_tab_width']
+        lid2side_tab_width = self.params['lid2side_tab_width']
+        
+        # Add lid to front slots
+        for loc in self.params['lid2front_tabs']:
+            for sign in (-1,1):
+                x_pos = inner_x*loc - 0.5*inner_x
+                y_pos = sign*(0.5*inner_y + 0.5*wall_thickness)
+                x_size = lid2front_tab_width
+                y_size = wall_thickness
+                slot = ((x_pos, y_pos), (x_size, y_size))
+                slot_list.append(slot)
+
+        # Add lid to side slots
+        for loc in self.params['lid2side_tabs']:
+            for sign in (-1,1):
+                x_pos = sign*(0.5*inner_x + 0.5*wall_thickness)
+                y_pos = (inner_y + 2*wall_thickness)*loc - 0.5*(inner_y +2*wall_thickness)
+                x_size = wall_thickness
+                y_size = lid2side_tab_width
+                slot = ((x_pos, y_pos), (x_size, y_size))
+                slot_list.append(slot)
+
+        # Get dimensions of top and bottom panels
+        top_x = inner_x + 2.0*(wall_thickness + top_x_overhang)
+        top_y = inner_y + 2.0*(wall_thickness + top_y_overhang)
+        top_z = wall_thickness
+        self.top_x, self.top_y = top_x, top_y
+        top_size = top_x, top_y, top_z
+        bottom_x = inner_x + 2.0*(wall_thickness + bottom_x_overhang)
+        bottom_y = inner_y + 2.0*(wall_thickness + bottom_y_overhang)
+        bottom_z = wall_thickness
+        self.bottom_x, self.bottom_y = bottom_x, bottom_y
+        bottom_size = bottom_x, bottom_y, bottom_z
+            
+        # Create top and bottom panels
+        top_params = {'size' : top_size, 'radius' : lid_radius, 'slots' : slot_list}
+        bottom_params = {'size' : bottom_size, 'radius' : lid_radius, 'slots' : slot_list}
+        top_plate_maker = Plate_W_Slots(top_params)
+        self.top = top_plate_maker.make()
+        bottom_plate_maker = Plate_W_Slots(bottom_params)
+        self.bottom = bottom_plate_maker.make()
+
+        # Add holes for standoffs
+        standoff_diameter = self.params['standoff_diameter']
+        standoff_offset = self.params['standoff_offset']
+        standoff_hole_diameter = self.params['standoff_hole_diameter']
+
+        hole_list = []
+        self.standoff_xy_pos = []
+        self.standoff_list = []
+        for i in (-1,1):
+            for j in (-1,1):
+                # Create holes for standoffs
+                x = i*(0.5*inner_x - 0.5*standoff_diameter - standoff_offset)
+                y = j*(0.5*inner_y - 0.5*standoff_diameter - standoff_offset)
+                self.standoff_xy_pos.append((x,y))
+                top_hole = { 
+                        'panel'     : 'top', 
+                        'type'      : 'round',
+                        'location'  : (x,y), 
+                        'size'      : standoff_hole_diameter,
+                        }
+                bottom_hole = {
+                        'panel'     : 'bottom', 
+                        'type'      : 'round',
+                        'location'  : (x,y), 
+                        'size'      : standoff_hole_diameter,
+                        }
+                hole_list.append(top_hole)
+                hole_list.append(bottom_hole)
+
+                # Create standoff cylinders
+                r = 0.5*standoff_diameter
+                standoff = Cylinder(r1=r, r2=r, h=inner_z)
+                self.standoff_list.append(standoff)
+
+        self.add_holes(hole_list)
+
+
+    def __make_left_and_right(self):
+        """
+        Creates the left and right side panels of the enclosure.
+        """
+        inner_x, inner_y, inner_z = self.params['inner_dimensions']
+        wall_thickness = self.params['wall_thickness']
+        lid2side_tab_width = self.params['lid2side_tab_width']
+        side2side_tab_width = self.params['side2side_tab_width']
+
+        # Create tab data for yz faces of side panels
+        xz_pos = []
+        xz_neg = []
+        for loc in self.params['lid2side_tabs']:
+            tab_data = (loc, lid2side_tab_width, wall_thickness, '+')
+            xz_pos.append(tab_data)
+            xz_neg.append(tab_data)
+
+        # Create tab data for xz faces of side panels
+        yz_pos = []
+        yz_neg = []
+        for loc in self.params['side2side_tabs']:
+            tab_data = (loc, side2side_tab_width, wall_thickness, '-')
+            yz_pos.append(tab_data)
+            yz_neg.append(tab_data)
+
+        # Pack panel data into parameters structure
+        params = { 
+                'size' : (inner_y+2*wall_thickness, inner_z, wall_thickness),
+                'xz+'  : xz_pos,
+                'xz-'  : xz_neg,
+                'yz+'  : yz_pos,
+                'yz-'  : yz_neg,
+                }
+
+        plate_maker = Plate_W_Tabs(params)
+        self.left = plate_maker.make()
+        self.right = plate_maker.make()
+
+
+    def __make_front_and_back(self):
+        """
+        Creates the front and back panels of the enclosure.
+        """
+        inner_x, inner_y, inner_z = self.params['inner_dimensions']
+        wall_thickness = self.params['wall_thickness']
+        lid2front_tab_width =  self.params['lid2front_tab_width']
+        side2side_tab_width = self.params['side2side_tab_width']
+
+        # Create tab data for xz faces of front and back panels
+        xz_pos = []
+        xz_neg = []
+        for loc in self.params['lid2front_tabs']:
+            tab_data = (loc, lid2front_tab_width, wall_thickness, '+') 
+            xz_pos.append(tab_data)
+            xz_neg.append(tab_data)
+
+        # Create tab data for yz faces of front and back panels
+        yz_pos = []
+        yz_neg = []
+        for loc in self.params['side2side_tabs']:
+            tab_data = (loc, side2side_tab_width, wall_thickness, '+')
+            yz_pos.append(tab_data)
+            yz_neg.append(tab_data)
+
+
+        # Pack panel data into parameters structure
+        params = { 
+                'size' : (inner_x, inner_z, wall_thickness),
+                'xz+'  : xz_pos,
+                'xz-'  : xz_neg,
+                'yz+'  : yz_pos,
+                'yz-'  : yz_neg,
+                }
+
+        plate_maker = Plate_W_Tabs(params)
+        self.front = plate_maker.make()
+        self.back = plate_maker.make()
+
+    def add_holes(self, hole_list):
+        """
+        Add holes to given panel of the enclosure. 
+        """
+
+        wall_thickness = self.params['wall_thickness']
+
+        for hole in hole_list:
+
+            # Create differencing cylinder for hole based on hole type.
+            if hole['type'] == 'round':
+                radius = 0.5*hole['size']
+                hole_cyl = Cylinder(r1=radius, r2=radius, h = 2*wall_thickness)
+            elif hole['type'] == 'square':
+                sz_x, sz_y = hole['size']
+                sz_z = 2*wall_thickness
+                hole_cyl = Cube(size = (sz_x,sz_y,sz_z))
+            elif hole['type'] == 'rounded_square':
+                sz_x, sz_y, radius = hole['size']
+                sz_z = 2*wall_thickness
+                hole_cyl = rounded_box(sz_x, sz_y, sz_z, radius, round_z=False)
+            else:
+                raise ValueError, 'unkown hole type {0}'.format(hole['type'])
+
+            # Translate cylinder into position
+            x,y = hole['location']
+            hole_cyl = Translate(hole_cyl, v = (x,y,0.0))
+
+            # Get panel in which to make hole
+            panel = getattr(self, hole['panel'])
+
+            # Cut hole
+            panel = Difference([panel, hole_cyl])
+            setattr(self, hole['panel'], panel)
+            
+                    
+    def make(self):
+        self.__make_left_and_right()
+        self.__make_front_and_back()
+        self.__make_top_and_bottom()
+        self.add_holes(self.params['hole_list'])
+        return
+
+    def get_assembly(self, explode=(0,0,0), show_top=True, show_bottom=True, show_front=True, 
+            show_back=True, show_left=True, show_right=True, show_standoffs=True):
+        """
+        Returns a list of the enclosure parts in assembled positions.
+        """
+        inner_x, inner_y, inner_z = self.params['inner_dimensions']
+        wall_thickness = self.params['wall_thickness']
+        explode_x, explode_y, explode_z = explode
+
+        # Translate top and bottom into assembled positions
+        top_z_shift = 0.5*inner_z + 0.5*wall_thickness + explode_z
+        bottom_z_shift = -top_z_shift
+        top = Translate(self.top, v=(0.0,0.0,top_z_shift))
+        bottom = Translate(self.bottom,v=(0.0,0.0,bottom_z_shift))
+
+        # Rotate and translate front and back into assembled positions
+        front = Rotate(self.front, a=90, v=(1,0,0))
+        back = Rotate(self.back, a=90, v=(1,0,0))
+        front_y_shift = 0.5*inner_y + 0.5*wall_thickness + explode_y
+        back_y_shift = -front_y_shift
+        front = Translate(front, v=(0.0, front_y_shift, 0.0))
+        back = Translate(back, v=(0.0, back_y_shift, 0.0))
+
+        # Rotate and translate sides into assembled positions
+        right = Rotate(self.right, a=90, v=(0,0,1))
+        right = Rotate(right, a=90, v=(0,1,0))
+        left = Rotate(self.left, a=90, v=(0,0,1))
+        left = Rotate(left, a=90, v=(0,1,0))
+        right_x_shift = 0.5*inner_x + 0.5*wall_thickness + explode_x
+        left_x_shift = -right_x_shift
+        right = Translate(right,v=(right_x_shift,0,0))
+        left = Translate(left,v=(left_x_shift,0,0))
+
+        # Translate standoffs into position
+        standoff_list = []
+        for pos, standoff in zip(self.standoff_xy_pos, self.standoff_list):
+            x_shift, y_shift = pos
+            z_shift = 0.0
+            standoff = Translate(standoff,v=(x_shift,y_shift,z_shift))
+            standoff_list.append(standoff)
+
+        # Return list of parts in assembly
+        part_list = []
+        if show_top == True:
+            part_list.append(top)
+        if show_bottom == True:
+            part_list.append(bottom)
+        if show_front == True:
+            part_list.append(front)
+        if show_back == True:
+            part_list.append(back)
+        if show_left == True:
+            part_list.append(left)
+        if show_right == True:
+            part_list.append(right)
+        if show_standoffs == True: 
+            part_list.extend(standoff_list)
+        return part_list
+
+
+    def get_projection(self,show_ref_cube=True, spacing_factor=4):
+        """
+        Retruns a list of enclosure parts as 2D projections for saving as a dxf file.
+        """
+        inner_x, inner_y, inner_z = self.params['inner_dimensions']
+        wall_thickness = self.params['wall_thickness']
+        top_x_overhang = self.params['top_x_overhang']
+        top_y_overhang = self.params['top_y_overhang']
+        bottom_x_overhang = self.params['bottom_x_overhang']
+        bottom_y_overhang = self.params['bottom_y_overhang']
+        spacing = spacing_factor*wall_thickness
+        bottom = self.bottom
+
+        # Translate front panel
+        y_shift = -(0.5*self.bottom_y + 0.5*inner_z + wall_thickness + spacing)
+        front = Translate(self.front, v=(0,y_shift,0))
+
+        # Translate back panel
+        y_shift = 0.5*self.bottom_y + 0.5*inner_z + wall_thickness + spacing
+        back = Translate(self.back, v=(0,y_shift,0))
+
+        # Rotate and Translate left panel
+        left = Rotate(self.left,a=90,v=(0,0,1))
+        x_shift = -(0.5*self.bottom_x + 0.5*inner_z + wall_thickness + spacing)
+        left = Translate(left, v=(x_shift,0,0))
+
+        # Rotate and translate right panel
+        right = Rotate(self.right,a=90,v=(0,0,1))
+        x_shift = 0.5*self.bottom_x + 0.5*inner_z + wall_thickness + spacing
+        right = Translate(right,v=(x_shift,0,0))
+
+        # Rotate and translate top
+        y_shift = -(0.5*self.bottom_y + 0.5*self.top_y + inner_z + 2*wall_thickness + 2*spacing)
+        top = Translate(self.top, v=(0,y_shift,0))
+
+        # Create reference cube
+        ref_cube = Cube(size=(INCH2MM,INCH2MM,INCH2MM))
+        y_shift = 0.5*self.bottom_y + 0.5*INCH2MM + inner_z + 2*wall_thickness + 2*spacing 
+        ref_cube = Translate(ref_cube,v=(0,y_shift,0))
+
+        # Create part list
+        part_list = [top, bottom, front, back, left, right]
+        if show_ref_cube == True:
+            part_list.append(ref_cube)
+
+        # Project parts
+        part_list_proj = []
+        for part in part_list:
+            part_list_proj.append(Projection(part))
+            
+        return part_list_proj
+
+
+class Plate_W_Slots(object):
+
+    """
+    Creates a plate with square (rectangular) slots. Plate is assumed to lie in the 
+    x-y plane and the holes are cut through the xy faces.
+
+    Usage:
+
+    plate_maker = Plate_W_Slots(params)
+    plate = plate_maker.make()
+
+    where:
+
+    params = {
+        'size'   : (x,y,z),    # plate size
+        'radius' : radius,     # plate raduis if not given assumed to be none 
+        'slots'  : slot_list,  # list of hole data
+    }
+
+    slot_list = [
+        (pos_0, size_0),  # position and size of slot 0
+        (pos_1, size_1),  # position and size of slot 1 
+        ... etc
+        ]
+
+    pos_i  = (pos_x, pos_y)    # the x and y coordinates of slot i
+    size_i = (size_x, size_y)  # the x and y dimensions of slot i
+    """
+
+    def __init__(self, params):
+        self.params = params
+
+    def __add_holes(self):
+
+        hole_list = []
+
+        for pos, size in self.params['slots']:
+            x, y = size 
+            z = 2*self.params['size'][2]
+            hole = Cube(size=(x, y, z)) 
+            pos_x, pos_y = pos
+            hole = Translate(hole,v=[pos_x, pos_y, 0])
+            hole_list.append(hole)
+
+        self.plate = Difference([self.plate] + hole_list)
+
+
+    def make(self):
+        try:
+            radius = self.params['radius']
+        except KeyError:
+            radius = None
+
+        if radius is None:
+            self.plate = Cube(size=self.params['size'])
+        else:
+            x,y,z = self.params['size']
+            self.plate = rounded_box(x, y, z, radius, round_z=False)
+
+        self.__add_holes()
+        return self.plate
+
+class Plate_W_Tabs(object):
+
+    """
+    Creates a plate with tabs on the xz and yz faces. 
+
+    Usage:
+
+    plate_maker = Tabbed_Plate(params)  where
+    plate = plate_maker.make()
+
+    params is a dictionary of the plate's parameters:
+
+    params = { 
+        'size' : (x,y,z),   # size of plate
+        'xz+'  : xz_pos,    # tab data for positive xz face 
+        'xz-'  : xz_neg,    # tab data for negative xz face 
+        'yz+'  : yz_pos,    # tab data for positive yz face 
+        'yz-'  : yz_neg,    # tab data for negative yz face 
+        }
+
+    the tab data are lists with the follow form:
+
+    tab_data = [ 
+        (pos_0, width_0, depth_0, dir_0),  # data for 0th tab 
+        (pos_1, width_1, depth_1, dir_1),  # data for 1st tab
+        ... etc
+        ]
+
+    Where for the i-th tab:
+
+    pos_i   =  position of tab as a fraction of face length. Face length is either
+               x or y dimension of plate depending on whether tab is on the xz or yz 
+               face of the plate. 
+    width_i =  width of tab along x or y dimension depending of whether tab is on 
+               the xz or yz face of the plate.
+    depth_i =  depth of the tab
+    dir_i   =  direction of the tab (either '+' or '-').
+    """
+
+    def __init__(self, params):
+        self.params = params 
+
+    def __add_tabs(self):
+
+        plate_x, plate_y, plate_z = self.params['size']
+        pos_tab_list = []
+        neg_tab_list = []
+
+        # Loop over face types
+        for face in ('xz', 'yz'):
+
+            # Loop over sign of faces
+            for sign, sign_val in (('+',1), ('-',-1)):
+                tab_data = self.params[face+sign]
+
+                for fpos, width, depth, tab_dir in tab_data: 
+                    # Make removed tabs, those wth '-' tab_dir, thicker than plate
+                    if tab_dir == '-':
+                        thickness = 1.5*plate_z
+                    else:
+                        thickness = plate_z
+
+                    if face == 'xz':
+                        # Create tabs for the xz faces
+                        tab = Cube(size=(width,2*depth,thickness))
+                        tx = fpos*plate_x - 0.5*plate_x
+                        ty = sign_val*0.5*plate_y
+                        tab = Translate(tab, v=(tx,ty,0))
+                    elif face == 'yz':
+                        # Create tabs for the yz faces
+                        tab = Cube(size=(2*depth,width,thickness))
+                        tx = sign_val*0.5*plate_x
+                        ty = fpos*plate_y - 0.5*plate_y
+                        tab = Translate(tab,v=(tx,ty,0))
+
+                    # Add tabs to appropriate list of tabs based on sign of tab
+                    if tab_dir == '+':
+                        pos_tab_list.append(tab)
+                    elif tab_dir == '-':
+                        neg_tab_list.append(tab)
+
+        # Add material for positive tabs
+        if len(pos_tab_list) > 0:
+            self.plate = Union([self.plate] + pos_tab_list)
+
+        # Remove material for negative tabs
+        if len(neg_tab_list) > 0:
+            self.plate = Difference([self.plate] + neg_tab_list)
+
+
+    def make(self):
+        """
+        Creates a tabbed plate.
+        """
+        self.plate = Cube(size=self.params['size'])
+        self.__add_tabs()
+        return self.plate
+
+
 def rounded_box(length, width, height, radius,
                 round_x=True, round_y=True, round_z=True):
     """
