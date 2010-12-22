@@ -248,8 +248,8 @@ class Basic_Enclosure(object):
         self.__make_left_and_right()
         self.__make_front_and_back()
         self.__make_top_and_bottom()
-        self.add_holes(self.params['hole_list'])
-        return
+        if self.params.has_key('hole_list'):
+            self.add_holes(self.params['hole_list'])
 
     def get_assembly(self, explode=(0,0,0), show_top=True, show_bottom=True, show_front=True, 
             show_back=True, show_left=True, show_right=True, show_standoffs=True):
@@ -524,6 +524,380 @@ class Plate_W_Tabs(object):
         self.__add_tabs()
         return self.plate
 
+
+class Right_Angle_Bracket(object):
+
+    """
+    Creates a tabbed right angle bracket for laser cutting.  
+
+    Need to add more documenttion for this class.
+    """
+
+    def __init__(self,params):
+        self.params = params
+
+    def __make_base_and_face(self):
+        """
+        Makes the base and face plates of the bracket.
+        """
+
+        # Get tab directions for base and face
+        base_tab_dir = self.params['base_tab_dir']
+        if base_tab_dir == '+':
+            face_tab_dir = '-'
+        elif base_tab_dir == '-':
+            face_tab_dir = '+'
+        else:
+            raise ValueError, "unknown tab direction, {0}, must be '+' or '-'".format(base_tab_dir)
+        
+        # Get base size
+        base_x = self.params['base_width'] 
+        base_y = self.params['base_depth']
+        base_z = self.params['base_thickness']
+        self.base_size = base_x, base_y, base_z
+
+        # Get face size
+        face_x = self.params['face_width']
+        face_y = self.params['face_height']
+        face_z = self.params['face_thickness']
+        self.face_size = face_x, face_y, face_z
+
+        # Create base plate 
+        xz_pos = []
+        for tab_data in self.params['base2face_tabs']:
+            tab_data = list(tab_data)
+            tab_data.append(base_tab_dir)
+            xz_pos.append(tuple(tab_data))
+
+        xz_neg = []
+        yz_pos = []
+        yz_neg = []
+
+        base_params = {
+                'size' : self.base_size,
+                'xz+'  : xz_pos,
+                'xz-'  : xz_neg,
+                'yz+'  : yz_pos,
+                'yz-'  : yz_neg,
+                }
+
+        base_maker = Plate_W_Tabs(base_params)
+        self.base = base_maker.make()
+        
+        # Create face plate 
+        xz_neg = []
+        for tab_data in self.params['base2face_tabs']:
+            fpos_base, width, depth = tab_data
+            fpos_face = (base_x*fpos_base - 0.5*base_x + 0.5*face_x)/face_x
+            tab_data = (fpos_face, width, depth, face_tab_dir)
+            xz_neg.append(tab_data)
+
+        xz_pos = []
+        yz_pos = []
+        yz_neg = []
+
+        face_params = {
+                'size' : self.face_size,
+                'xz+'  : xz_pos,
+                'xz-'  : xz_neg,
+                'yz+'  : yz_pos,
+                'yz-'  : yz_neg,
+                }
+
+        face_maker = Plate_W_Tabs(face_params)
+        self.face = face_maker.make()
+
+        self.__add_slots()
+
+
+    def __add_slots(self):
+        """
+        Add slots to base and face plates
+        """
+        # Add slots for support tabs
+        hole_list = []
+        for support_data in self.params['supports']:
+            support_pos = support_data['pos']
+            support_params = support_data['params']
+            support_thickness = support_params['thickness']
+            support_depth = support_params['depth']
+            support_height = support_params['height']
+
+            for tab_data in support_params['face_tabs']:
+                fpos, width, depth = tab_data
+                x_loc = support_pos 
+                y_loc = fpos*support_height - 0.5*self.face_size[1] + self.base_size[2]
+
+                # Make slots in face
+                hole = {
+                        'plate'    : 'face',
+                        'type'     : 'square', 
+                        'size'     : (support_thickness, width), 
+                        'location' : (x_loc, y_loc), 
+                        }
+                hole_list.append(hole)
+
+            for tab_data in support_params['base_tabs']:
+                fpos, width, depth = tab_data
+                x_loc = support_pos 
+                y_loc = -fpos*support_depth + 0.5*self.base_size[1]
+
+                # Make slots in base
+                hole = {
+                        'plate'    : 'base',
+                        'type'     : 'square', 
+                        'size'     : (support_thickness,width), 
+                        'location' : (x_loc, y_loc), 
+                        }
+                hole_list.append(hole)
+
+        self.add_holes(hole_list)
+
+    def __make_supports(self):
+        """
+        Makes the right triangle supports for the bracket.
+        """
+        self.support_list = []
+        self.support_pos_list = []
+        for support_data in self.params['supports']:
+            support_params = support_data['params']
+            x = support_params['depth'] 
+            y = support_params['height']
+            z = support_params['thickness']
+            face_tabs = [list(val) + ['+'] for val in support_params['face_tabs']]
+            base_tabs = [list(val) + ['+'] for val in support_params['base_tabs']]
+            triangle_params = {
+                    'size' : (x,y,z),
+                    'xz'   : base_tabs, 
+                    'yz'   : face_tabs,
+                    'hz'   : [],
+                    }
+            support_maker = RT_Triangle_W_Tabs(triangle_params) 
+            support = support_maker.make()
+            self.support_list.append(support)
+            self.support_pos_list.append(support_data['pos'])
+            
+    def add_holes(self, hole_list):
+        """
+        Add holes to base or face
+        """
+        # Get plate in which to cut hole
+        thickness = max([self.base_size[2], self.face_size[2]])
+
+        for hole in hole_list:
+
+            # Create differencing cylinder for hole based on hole type.
+            if hole['type'] == 'round':
+                radius = 0.5*hole['size']
+                hole_cyl = Cylinder(r1=radius, r2=radius, h = 2*thickness)
+            elif hole['type'] == 'square':
+                sz_x, sz_y = hole['size']
+                sz_z = 2*thickness
+                hole_cyl = Cube(size = (sz_x,sz_y,sz_z))
+            elif hole['type'] == 'rounded_square':
+                sz_x, sz_y, radius = hole['size']
+                sz_z = 2*thickness
+                hole_cyl = rounded_box(sz_x, sz_y, sz_z, radius, round_z=False)
+            else:
+                raise ValueError, 'unkown hole type {0}'.format(hole['type'])
+
+            # Translate hole cylinder into position
+            x,y = hole['location']
+            hole_cyl = Translate(hole_cyl,v=(x,y,0))
+
+            # Get plate in which to make hole
+            plate = getattr(self, hole['plate'])
+
+            # Cut hole
+            plate = Difference([plate, hole_cyl])
+            setattr(self, hole['plate'], plate)
+
+
+    def make(self): 
+        """
+        Create parts.
+        """
+        self.__make_base_and_face()
+        self.__make_supports()
+        if self.params.has_key('hole_list'):
+            self.add_holes(self.params['hole_list'])
+            
+
+    def get_assembly(self,explode=(0,0,0)):
+        """
+        Returns list of parts in assembled positions.
+        """
+        explode_x, explode_y, explode_z = explode
+
+        # Position base and face plates
+        face = Rotate(self.face,a=90,v=(1,0,0))
+        y_shift = 0.5*self.base_size[1] + 0.5*self.face_size[2] + explode_y
+        z_shift = 0.5*self.face_size[1] - 0.5*self.base_size[2] + explode_z
+        face = Translate(face,v=(0,y_shift,z_shift))
+
+        # Add supports
+        support_list = []
+        for pos, support in zip(self.support_pos_list, self.support_list):
+            support = Rotate(support, a=90, v=(1,0,0))
+            support = Rotate(support, a=-90, v=(0,0,1))
+            x_shift = pos 
+            y_shift = 0.5*self.base_size[1]
+            z_shift = 0.5*self.base_size[2] + explode_z
+            support = Translate(support,v=(x_shift,y_shift,z_shift))
+            support_list.append(support)
+
+        return [self.base, face,] + support_list
+
+    def get_projection(self,show_ref_cube=True,spacing_factor=2):
+        """
+        Returns list of parts as 2D projections.
+
+        Not done yet
+        """
+        # Determine spacing based on thicknesses
+        support_thickness_list = []
+        for support_data in self.params['supports']: 
+            support_thickness_list.append(support_data['params']['thickness'])
+        max_support_thickness = max(support_thickness_list)
+        thickness_list = [self.params['base_thickness'], self.params['face_thickness'],max_support_thickness]
+        spacing = spacing_factor*max(thickness_list)
+
+        # Translate base into position
+        tx = -max([0.5*self.base_size[0], 0.5*self.face_size[0]]) - 0.5*spacing
+        ty = -0.5*self.base_size[1] -0.5*spacing
+        base = Translate(self.base, v=(tx,ty,0))
+
+        # Translate face into position
+        ty =  0.5*self.face_size[1] + 0.5*spacing
+        face = Translate(self.face,v=(tx,ty,0)) 
+
+        # Get maximum support tab depth
+        tab_depth_list = []
+        for support_data in self.params['supports']:
+            for tab_data in support_data['params']['base_tabs']:
+                tab_depth_list.append(tab_data[2])
+            for tab_data in support_data['params']['face_tabs']:
+                tab_depth_list.append(tab_data[2])
+        max_tab_depth = max(tab_depth_list)
+
+        # Translate supports into position
+        cnt = 0
+        support_list = []
+        ty = max_tab_depth + 0.5*spacing 
+        for support, support_data in zip(self.support_list, self.params['supports']):
+            if cnt > 0:
+                ty -= support_data['params']['height'] + spacing
+            tx = max_tab_depth + 0.5*spacing
+            support = Translate(support,v=(tx,ty,0))
+            support_list.append(support)
+            cnt += 1
+
+        # Create reference cube
+        ref_cube = Cube(size=(INCH2MM,INCH2MM,INCH2MM))
+        y_shift = self.face_size[1] + 0.5*INCH2MM + spacing 
+        ref_cube = Translate(ref_cube,v=(0,y_shift,0))
+
+        # Collect part into parts list and project to 2D
+        parts_list = [base, face] + support_list
+        if show_ref_cube == True:
+            parts_list.append(ref_cube)
+        parts_list = [Projection(part) for part in parts_list]
+        return parts_list 
+
+
+class RT_Triangle_W_Tabs(object):
+    """
+    Creates a right triangle with tabs on the x-z, y-z, and h-z faces of the
+    triangle. 
+
+    Usage:
+
+    rt = RT_Triangle_W_Tabs(params)
+
+    where
+
+    params = {
+        'size'   : (x,y,x),    # Size of right triangle
+        'xz'      : xz_tab_data, # tab data for x-z face of right triangle
+        'yz'      : yz_tab_data, # tab data for y-z face of right triangle   
+        'hz'      : hz_tab_data, # tab data for h-z face of right triangle
+    }
+
+    and 
+
+    (face)_tab_data = [
+        (pos_0, width_0, depth_0, tab_dir_0),  # data for 0th tab
+        (pos_1, width_1, depth_1, tab_dir_1),  # data for 1st tab
+        ...
+        ]
+
+    pos_i     =   position of tab i as a fraction of face length
+    width_i   =   width of tab i along the face 
+    depth_i   =   depth of tab i
+    tab_dir_i =   depth of the tab.
+    """
+
+    def __init__(self,params):
+        self.params = params
+
+    def __make_rt_triangle(self):
+        x,y,z = self.params['size']
+        self.rt_triangle =  right_triangle(x,y,z)
+
+    def __add_tabs(self):
+
+        plate_x, plate_y, plate_z = self.params['size']
+        pos_tab_list = []
+        neg_tab_list = []
+
+        # Loop over face types
+        for face in ('xz', 'yz', 'hz'):
+            tab_data = self.params[face]
+
+            for fpos, width, depth, tab_dir in tab_data:
+                # Select tabs thickness - removed tabs are thicker
+                if tab_dir == '-':
+                    thickness = 1.5*plate_z
+                elif tab_dir == '+': 
+                    thickness = plate_z 
+                else:
+                    raise ValueError, "unknown tab direction, {0}, must be '+' or '-'".format(tab_dir)
+
+                if face == 'xz':
+                    # Create tabs for the x face of the triangle
+                    tab = Cube(size=(width,2*depth,thickness))
+                    tab = Translate(tab,v=(fpos*plate_x,0,0))
+                elif face == 'yz':
+                    # Create tabs for the y face of the triangle
+                    tab = Cube(size=(2*depth,width,thickness))
+                    tab = Translate(tab,v=(0,fpos*plate_y,0))
+                else:
+                    # Create tabs for the h face of the triangle
+                    tab = Cube(size=(width,2*depth,thickness))
+                    h = numpy.sqrt(plate_x**2 + plate_y**2)
+                    tab = Translate(tab,v=(-fpos*h,0,0))
+                    theta = -RAD2DEG(numpy.arctan2(plate_y, plate_x))
+                    tab = Rotate(tab,a=theta,v=(0,0,1))
+                    tab = Translate(tab,v=(plate_x,0,0))
+
+                # Add tabs to the appropriate list base on tab direction
+                if tab_dir == '+':
+                    pos_tab_list.append(tab)
+                else:
+                    neg_tab_list.append(tab)
+
+        # Add material for positive tabs
+        if len(pos_tab_list) > 0:
+            self.rt_triangle = Union([self.rt_triangle] + pos_tab_list)
+
+        # Remove material for negative tabs
+        if len(neg_tab_list) > 0:
+            self.rt_triangle = Difference([self.rt_triangle] + neg_tab_list)
+
+    def make(self):
+        self.__make_rt_triangle()
+        self.__add_tabs()
+        return self.rt_triangle
 
 def rounded_box(length, width, height, radius,
                 round_x=True, round_y=True, round_z=True):
