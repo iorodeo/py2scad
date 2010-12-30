@@ -267,12 +267,12 @@ class Basic_Enclosure(object):
         bottom = Translate(self.bottom,v=(0.0,0.0,bottom_z_shift))
 
         # Rotate and translate front and back into assembled positions
-        front = Rotate(self.front, a=90, v=(1,0,0))
         back = Rotate(self.back, a=90, v=(1,0,0))
-        front_y_shift = 0.5*inner_y + 0.5*wall_thickness + explode_y
-        back_y_shift = -front_y_shift
-        front = Translate(front, v=(0.0, front_y_shift, 0.0))
+        front = Rotate(self.front, a=90, v=(1,0,0))
+        back_y_shift = 0.5*inner_y + 0.5*wall_thickness + explode_y
+        front_y_shift = -back_y_shift
         back = Translate(back, v=(0.0, back_y_shift, 0.0))
+        front = Translate(front, v=(0.0, front_y_shift, 0.0))
 
         # Rotate and translate sides into assembled positions
         right = Rotate(self.right, a=90, v=(0,0,1))
@@ -314,6 +314,9 @@ class Basic_Enclosure(object):
     def get_projection(self,show_ref_cube=True, spacing_factor=4):
         """
         Retruns a list of enclosure parts as 2D projections for saving as a dxf file.
+
+        All Parts, except the floor,  are rotated so that their outside faces are up in the projection. 
+        This is done to make adding text for etching easier. 
         """
         inner_x, inner_y, inner_z = self.params['inner_dimensions']
         wall_thickness = self.params['wall_thickness']
@@ -330,10 +333,12 @@ class Basic_Enclosure(object):
 
         # Translate back panel
         y_shift = 0.5*self.bottom_y + 0.5*inner_z + wall_thickness + spacing
-        back = Translate(self.back, v=(0,y_shift,0))
+        back = Rotate(self.back,a=180,v=(1,0,0)) # Rotate part so that outside face is up in projection
+        back = Translate(back, v=(0,y_shift,0))
 
         # Rotate and Translate left panel
         left = Rotate(self.left,a=90,v=(0,0,1))
+        left = Rotate(left,a=180,v=(0,1,0)) # Rotate part so that outside face is up in projection
         x_shift = -(0.5*self.bottom_x + 0.5*inner_z + wall_thickness + spacing)
         left = Translate(left, v=(x_shift,0,0))
 

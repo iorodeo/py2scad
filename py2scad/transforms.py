@@ -122,7 +122,7 @@ class Color(base.SCAD_CMP_Object):
 
     def __init__(self,obj,rgba=[0.5, 0.5, 0.5, 1.0], *args, **kwargs):
         base.SCAD_CMP_Object.__init__(self, obj, *args, **kwargs)
-        self.rgba = utility.float_list4(rgba)
+        self.rgba = rgba
         assert self.rgba_ok(), 'rgba values must be in [0,1]'
 
     def cmd_str(self,tab_level=0):
