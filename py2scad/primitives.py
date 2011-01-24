@@ -185,7 +185,7 @@ class Square(base.SCAD_Object):
 
 class Polygon(base.SCAD_Object):
 
-    def __init__(self, points, paths, *args, **kwargs):
+    def __init__(self, points, paths,  *args, **kwargs):
         base.SCAD_Object.__init__(self, *args, **kwargs)
         self.points = points
         self.paths = paths

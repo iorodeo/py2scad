@@ -158,7 +158,7 @@ class Linear_Extrude(base.SCAD_CMP_Object):
 
     def __init__(self,obj,h=1, twist=0, center=True, convexity=5,
                  slices=None, *args, **kwargs):
-        base.SCAD_CMP_Object.__init__(self,obj,center=center,mod=mod, *args, **kwargs)
+        base.SCAD_CMP_Object.__init__(self,obj,center=center, *args, **kwargs)
         self.h = h
         self.twist = twist
         self.convexity = convexity
