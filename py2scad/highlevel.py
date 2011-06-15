@@ -208,26 +208,26 @@ class Basic_Enclosure(object):
         self.front = plate_maker.make()
         self.back = plate_maker.make()
 
-    def add_holes(self, hole_list):
+    def add_holes(self, hole_list, cut_depth = None):
         """
         Add holes to given panel of the enclosure. 
         """
-
-        wall_thickness = self.params['wall_thickness']
+        if not cut_depth:
+            cut_depth = 2*self.params['wall_thickness']
 
         for hole in hole_list:
 
             # Create differencing cylinder for hole based on hole type.
             if hole['type'] == 'round':
                 radius = 0.5*hole['size']
-                hole_cyl = Cylinder(r1=radius, r2=radius, h = 2*wall_thickness)
+                hole_cyl = Cylinder(r1=radius, r2=radius, h=cut_depth)
             elif hole['type'] == 'square':
                 sz_x, sz_y = hole['size']
-                sz_z = 2*wall_thickness
+                sz_z = cut_depth 
                 hole_cyl = Cube(size = (sz_x,sz_y,sz_z))
             elif hole['type'] == 'rounded_square':
                 sz_x, sz_y, radius = hole['size']
-                sz_z = 2*wall_thickness
+                sz_z = cut_depth 
                 hole_cyl = rounded_box(sz_x, sz_y, sz_z, radius, round_z=False)
             else:
                 raise ValueError, 'unkown hole type {0}'.format(hole['type'])

@@ -5,7 +5,7 @@ is demonstrated here.
 from py2scad import *
 import scipy
 
-if 1:
+if 0:
 
     c = Circle(r=2.0)
     s = Square(size=[3,1])
@@ -22,7 +22,7 @@ if 0:
     torus.write('test.scad')
     print torus
 
-if 0:
+if 1:
 
     x = scipy.linspace(0,8,500)
 
