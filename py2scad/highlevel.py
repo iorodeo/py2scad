@@ -33,8 +33,8 @@ class Basic_Enclosure(object):
     Need to add more documentaion on how to use this class ...
     """
 
-    def __init__(self, params):
-        self.params = params
+    def __init__(self,params):
+        self.params = params 
 
     def __make_top_and_bottom(self):
         """
@@ -138,12 +138,17 @@ class Basic_Enclosure(object):
         wall_thickness = self.params['wall_thickness']
         lid2side_tab_width = self.params['lid2side_tab_width']
         side2side_tab_width = self.params['side2side_tab_width']
+        try:
+            depth_adjust = self.params['tab_depth_adjust']
+        except KeyError:
+            depth_adjust = 0.0
+        tab_depth = wall_thickness + depth_adjust 
 
         # Create tab data for yz faces of side panels
         xz_pos = []
         xz_neg = []
         for loc in self.params['lid2side_tabs']:
-            tab_data = (loc, lid2side_tab_width, wall_thickness, '+')
+            tab_data = (loc, lid2side_tab_width, tab_depth, '+')
             xz_pos.append(tab_data)
             xz_neg.append(tab_data)
 
@@ -151,7 +156,7 @@ class Basic_Enclosure(object):
         yz_pos = []
         yz_neg = []
         for loc in self.params['side2side_tabs']:
-            tab_data = (loc, side2side_tab_width, wall_thickness, '-')
+            tab_data = (loc, side2side_tab_width, tab_depth, '-')
             yz_pos.append(tab_data)
             yz_neg.append(tab_data)
 
@@ -177,12 +182,17 @@ class Basic_Enclosure(object):
         wall_thickness = self.params['wall_thickness']
         lid2front_tab_width =  self.params['lid2front_tab_width']
         side2side_tab_width = self.params['side2side_tab_width']
+        try:
+            depth_adjust = self.params['tab_depth_adjust']
+        except KeyError:
+            depth_adjust = 0.0
+        tab_depth = wall_thickness + depth_adjust 
 
         # Create tab data for xz faces of front and back panels
         xz_pos = []
         xz_neg = []
         for loc in self.params['lid2front_tabs']:
-            tab_data = (loc, lid2front_tab_width, wall_thickness, '+')
+            tab_data = (loc, lid2front_tab_width, tab_depth, '+')
             xz_pos.append(tab_data)
             xz_neg.append(tab_data)
 
@@ -190,7 +200,7 @@ class Basic_Enclosure(object):
         yz_pos = []
         yz_neg = []
         for loc in self.params['side2side_tabs']:
-            tab_data = (loc, side2side_tab_width, wall_thickness, '+')
+            tab_data = (loc, side2side_tab_width, tab_depth, '+')
             yz_pos.append(tab_data)
             yz_neg.append(tab_data)
 
@@ -251,11 +261,23 @@ class Basic_Enclosure(object):
         if self.params.has_key('hole_list'):
             self.add_holes(self.params['hole_list'])
 
-    def get_assembly(self, explode=(0,0,0), show_top=True, show_bottom=True, show_front=True,
-            show_back=True, show_left=True, show_right=True, show_standoffs=True):
+    def get_assembly(self,**kwargs):
         """
         Returns a list of the enclosure parts in assembled positions.
         """
+        assembly_options= {
+                'explode'       : (0,0,0), 
+                'show_top'      : True, 
+                'show_bottom'   : True, 
+                'show_front'    : True,
+                'show_back'     : True, 
+                'show_left'     : True, 
+                'show_right'    : True, 
+                'show_standoffs': True,
+                }
+        assembly_options.update(kwargs)
+        explode = assembly_options['explode']
+        
         inner_x, inner_y, inner_z = self.params['inner_dimensions']
         wall_thickness = self.params['wall_thickness']
         explode_x, explode_y, explode_z = explode
@@ -294,19 +316,19 @@ class Basic_Enclosure(object):
 
         # Return list of parts in assembly
         part_list = []
-        if show_top == True:
+        if assembly_options['show_top'] == True:
             part_list.append(top)
-        if show_bottom == True:
+        if assembly_options['show_bottom'] == True:
             part_list.append(bottom)
-        if show_front == True:
+        if assembly_options['show_front'] == True:
             part_list.append(front)
-        if show_back == True:
+        if assembly_options['show_back'] == True:
             part_list.append(back)
-        if show_left == True:
+        if assembly_options['show_left'] == True:
             part_list.append(left)
-        if show_right == True:
+        if assembly_options['show_right'] == True:
             part_list.append(right)
-        if show_standoffs == True:
+        if assembly_options['show_standoffs'] == True:
             part_list.extend(standoff_list)
         return part_list
 
