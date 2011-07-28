@@ -1013,7 +1013,7 @@ def plate_w_holes(length, width, height, holes=[], hole_mod='', radius=False):
     if radius == False:
         plate = Cube(size=[length,width,height])
     else:
-        plate = rounded_box(length,width,height,radius)
+        plate = rounded_box(length,width,height,radius,round_z=False)
     cylinders = []
     for x,y,r in holes:
         c = Cylinder(h=4*height,r1=0.5*r, r2=0.5*r)
