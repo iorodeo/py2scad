@@ -236,6 +236,8 @@ class Basic_Enclosure(object):
         if not cut_depth:
             cut_depth = 2*self.params['wall_thickness']
 
+        #panels2holes = {}
+
         for hole in hole_list:
 
             # Create differencing cylinder for hole based on hole type.
@@ -263,6 +265,20 @@ class Basic_Enclosure(object):
             # Cut hole
             panel = Difference([panel, hole_cyl])
             setattr(self, hole['panel'], panel)
+
+            #try:
+            #    panels2holes[hole['panel']].append(hole_cyl)
+            #except KeyError:
+            #    panels2holes[hole['panel']] = [hole_cyl]
+
+        #for panel_name, panel_holes in panels2holes.iteritems():
+        #    panel = getattr(self, hole['panel'])
+        #    panel = Difference([panel] + panel_holes)
+        #    setattr(self, hole['panel'], panel)
+
+
+
+
 
 
     def make(self):
