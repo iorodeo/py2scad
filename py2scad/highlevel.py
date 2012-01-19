@@ -78,27 +78,34 @@ class Basic_Enclosure(object):
         top_y = inner_y + 2.0*(wall_thickness + top_y_overhang)
         top_z = wall_thickness
         self.top_x, self.top_y = top_x, top_y
-        top_size = top_x, top_y, top_z
+
         bottom_x = inner_x + 2.0*(wall_thickness + bottom_x_overhang)
         bottom_y = inner_y + 2.0*(wall_thickness + bottom_y_overhang)
         bottom_z = wall_thickness
         self.bottom_x, self.bottom_y = bottom_x, bottom_y
-        bottom_size = bottom_x, bottom_y, bottom_z
 
         # Create top and bottom panels
-        top_params = {'size' : top_size, 'radius' : lid_radius, 'slots' : slot_list}
-        bottom_params = {'size' : bottom_size, 'radius' : lid_radius, 'slots' : slot_list}
-        top_plate_maker = Plate_W_Slots(top_params)
-        self.top = top_plate_maker.make()
-        bottom_plate_maker = Plate_W_Slots(bottom_params)
-        self.bottom = bottom_plate_maker.make()
+        self.top = rounded_box(top_x, top_y, top_z, lid_radius, round_z=False)
+        self.bottom = rounded_box(bottom_x, bottom_y, bottom_z, lid_radius, round_z=False)
+
+        # Create slot holes for top and bottom panels
+        self.tab_hole_list = []
+        for panel in ('top', 'bottom'):
+            for pos, size in slot_list:
+                hole = {
+                        'panel'    : panel,
+                        'type'     : 'square',
+                        'location' : pos,
+                        'size'     : size,
+                        }
+                self.tab_hole_list.append(hole)
 
         # Add holes for standoffs
         standoff_diameter = self.params['standoff_diameter']
         standoff_offset = self.params['standoff_offset']
         standoff_hole_diameter = self.params['standoff_hole_diameter']
 
-        hole_list = []
+        self.standoff_hole_list = []
         self.standoff_xy_pos = []
         self.standoff_list = []
         for i in (-1,1):
@@ -119,16 +126,16 @@ class Basic_Enclosure(object):
                         'location'  : (x,y),
                         'size'      : standoff_hole_diameter,
                         }
-                hole_list.append(top_hole)
-                hole_list.append(bottom_hole)
+                self.standoff_hole_list.append(top_hole)
+                self.standoff_hole_list.append(bottom_hole)
 
                 # Create standoff cylinders
                 r = 0.5*standoff_diameter
                 standoff = Cylinder(r1=r, r2=r, h=inner_z)
                 self.standoff_list.append(standoff)
 
+        hole_list = self.tab_hole_list + self.standoff_hole_list
         self.add_holes(hole_list)
-
 
     def __make_left_and_right(self):
         """
@@ -138,6 +145,7 @@ class Basic_Enclosure(object):
         wall_thickness = self.params['wall_thickness']
         lid2side_tab_width = self.params['lid2side_tab_width']
         side2side_tab_width = self.params['side2side_tab_width']
+
         try:
             depth_adjust = self.params['tab_depth_adjust']
         except KeyError:
@@ -175,7 +183,7 @@ class Basic_Enclosure(object):
         plate_maker = Plate_W_Tabs(params)
         self.left = plate_maker.make()
         self.right = plate_maker.make()
-
+        
 
     def __make_front_and_back(self):
         """
