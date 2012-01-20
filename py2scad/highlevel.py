@@ -360,7 +360,7 @@ class Basic_Enclosure(object):
         return part_list
 
 
-    def get_projection(self,show_ref_cube=True, spacing_factor=4):
+    def get_projection(self, show_ref_cube=True, spacing_factor=4, project=True):
         """
         Retruns a list of enclosure parts as 2D projections for saving as a dxf file.
 
@@ -413,7 +413,11 @@ class Basic_Enclosure(object):
         # Project parts
         part_list_proj = []
         for part in part_list:
-            part_list_proj.append(Projection(part))
+            if project:
+                part_list_proj.append(Projection(part))
+            else:
+                part_list_proj.append(part)
+
 
         return part_list_proj
 
