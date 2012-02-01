@@ -16,6 +16,7 @@ limitations under the License.
 from base import SCAD_Prog
 from primitives import *
 from transforms import *
+import stl_tools
 try:
     from highlevel import *
 except ImportError:
