@@ -360,7 +360,7 @@ class Basic_Enclosure(object):
         return part_list
 
 
-    def get_projection(self, show_ref_cube=True, spacing_factor=4, project=True):
+    def get_projection(self, show_ref_cube=True, spacing_factor=4, project=True, exclude_list=[]):
         """
         Retruns a list of enclosure parts as 2D projections for saving as a dxf file.
 
@@ -406,7 +406,22 @@ class Basic_Enclosure(object):
         ref_cube = Translate(ref_cube,v=(0,y_shift,0))
 
         # Create part list
-        part_list = [top, bottom, front, back, left, right]
+        part_dict = {
+                'top'     : top, 
+                'bottom'  : bottom, 
+                'front'   : front, 
+                'back'    : back, 
+                'left'    : left,
+                'right'   : right
+                }
+        part_list= []
+        for name, part in part_dict.iteritems():
+            if name in exclude_list:
+                continue
+            part_list.append(part)
+
+        #part_list = [top, bottom, front, back, left, right]
+
         if show_ref_cube == True:
             part_list.append(ref_cube)
 
