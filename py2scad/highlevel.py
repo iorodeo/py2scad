@@ -36,7 +36,7 @@ class Basic_Enclosure(object):
     def __init__(self,params):
         self.params = params 
 
-    def __make_top_and_bottom(self):
+    def make_top_and_bottom(self):
         """
         Create top and bottom panels of the enclosure.
         """
@@ -137,7 +137,7 @@ class Basic_Enclosure(object):
         hole_list = self.tab_hole_list + self.standoff_hole_list
         self.add_holes(hole_list)
 
-    def __make_left_and_right(self):
+    def make_left_and_right(self):
         """
         Creates the left and right side panels of the enclosure.
         """
@@ -185,7 +185,7 @@ class Basic_Enclosure(object):
         self.right = plate_maker.make()
         
 
-    def __make_front_and_back(self):
+    def make_front_and_back(self):
         """
         Creates the front and back panels of the enclosure.
         """
@@ -279,12 +279,10 @@ class Basic_Enclosure(object):
 
 
 
-
-
     def make(self):
-        self.__make_left_and_right()
-        self.__make_front_and_back()
-        self.__make_top_and_bottom()
+        self.make_left_and_right()
+        self.make_front_and_back()
+        self.make_top_and_bottom()
         if self.params.has_key('hole_list'):
             self.add_holes(self.params['hole_list'])
 
