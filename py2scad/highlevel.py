@@ -140,6 +140,10 @@ class Basic_Enclosure(object):
     def make_left_and_right(self):
         """
         Creates the left and right side panels of the enclosure.
+        Positive tabs can be adjusted independently by passing a 
+        dictionary:
+        tab_depth_adjust = {'top': , 'bot': , 'side': }
+        Note: 'side' key is only used while makeing front and back (below)
         """
         inner_x, inner_y, inner_z = self.params['inner_dimensions']
         wall_thickness = self.params['wall_thickness']
@@ -151,16 +155,31 @@ class Basic_Enclosure(object):
         except KeyError:
             depth_adjust = 0.0
 
+        if type(depth_adjust)==dict:
+            try:
+                depth_adjust_pos = depth_adjust['top']
+            except KeyError:
+                depth_adjust_pos = 0.0
+            try:
+                depth_adjust_neg = depth_adjust['bot']
+            except KeyError:
+                depth_adjust_neg = 0.0
+        else:
+            depth_adjust_pos = depth_adjust 
+            depth_adjust_neg = depth_adjust
+
         # Only apply tab depth adjustment to positive tabs
-        tab_depth_pos = wall_thickness + depth_adjust 
+        tab_depth_pos_pos = wall_thickness + depth_adjust_pos
+        tab_depth_pos_neg = wall_thickness + depth_adjust_neg
         tab_depth_neg = wall_thickness
 
         # Create tab data for yz faces of side panels
         xz_pos = []
         xz_neg = []
         for loc in self.params['lid2side_tabs']:
-            tab_data = (loc, lid2side_tab_width, tab_depth_pos, '+')
+            tab_data = (loc, lid2side_tab_width, tab_depth_pos_pos, '+')
             xz_pos.append(tab_data)
+            tab_data = (loc, lid2side_tab_width, tab_depth_pos_neg, '+')
             xz_neg.append(tab_data)
 
         # Create tab data for xz faces of side panels
@@ -184,37 +203,63 @@ class Basic_Enclosure(object):
         self.left = plate_maker.make()
         self.right = plate_maker.make()
         
-
     def make_front_and_back(self):
         """
         Creates the front and back panels of the enclosure.
+        Positive tabs can be adjusted independently by passing a 
+        dictionary:
+        tab_depth_adjust = {'top': , 'bot': , 'side': }
         """
         inner_x, inner_y, inner_z = self.params['inner_dimensions']
         wall_thickness = self.params['wall_thickness']
         lid2front_tab_width =  self.params['lid2front_tab_width']
         side2side_tab_width = self.params['side2side_tab_width']
+        
         try:
             depth_adjust = self.params['tab_depth_adjust']
         except KeyError:
             depth_adjust = 0.0
-        tab_depth = wall_thickness + depth_adjust 
+
+        if type(depth_adjust)==dict:
+            try:
+                depth_adjust_pos = depth_adjust['top']
+            except KeyError:
+                depth_adjust_pos = 0.0
+            try:
+                depth_adjust_neg = depth_adjust['bot']
+            except KeyError:
+                depth_adjust_neg = 0.0
+            try:
+                depth_adjust_side = depth_adjust['side']
+            except KeyError:
+                depth_adjust_side = 0.0
+        else:
+            depth_adjust_pos = depth_adjust 
+            depth_adjust_neg = depth_adjust
+            depth_adjust_side = depth_adjust
+
+        # Only apply tab depth adjustment to positive tabs
+        tab_depth_pos_pos = wall_thickness + depth_adjust_pos
+        tab_depth_pos_neg = wall_thickness + depth_adjust_neg
+        tab_depth_pos_side = wall_thickness + depth_adjust_side
 
         # Create tab data for xz faces of front and back panels
         xz_pos = []
         xz_neg = []
         for loc in self.params['lid2front_tabs']:
-            tab_data = (loc, lid2front_tab_width, tab_depth, '+')
+            tab_data = (loc, lid2front_tab_width, tab_depth_pos_pos, '+')
             xz_pos.append(tab_data)
+            tab_data = (loc, lid2front_tab_width, tab_depth_pos_neg, '+')
             xz_neg.append(tab_data)
 
         # Create tab data for yz faces of front and back panels
         yz_pos = []
         yz_neg = []
         for loc in self.params['side2side_tabs']:
-            tab_data = (loc, side2side_tab_width, tab_depth, '+')
+            tab_data = (loc, side2side_tab_width, tab_depth_pos_side, '+')
             yz_pos.append(tab_data)
+            tab_data = (loc, side2side_tab_width, tab_depth_pos_side, '+')
             yz_neg.append(tab_data)
-
 
         # Pack panel data into parameters structure
         params = {
