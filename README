@@ -4,9 +4,8 @@ Do you prefer programming to drawing? Do you want a simple way to create
 complicated 3D solid models using your favorite programing language? If so then
 py2sacd may just be the thing for you. py2scad is a simple python library which
 enables you write .scad files using python. py2scad is meant to be used in
-conjuction with Clifford Wolff's great OpenSCAD program (http://openscad.org/).
-Use py2scad to create the .scad version of your part and OpenSCAD to view your
-part as you create it.
+conjuction with OpenSCAD (http://openscad.org/).  Use py2scad to create the
+.scad version of your part and OpenSCAD to view your part as you create it.
 
 See TODO file for features under consideration/construction.
 
