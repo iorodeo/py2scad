@@ -155,6 +155,16 @@ class Import_STL(base.SCAD_Object):
         facets = self.facets() # Retreve object facet information
         return 'import_stl("{0.filename}",convexity={0.convexity:d}{1});'.format(self, facets)
 
+class Import(base.SCAD_Object):
+
+    def __init__(self, filename, convexity=3, *args, **kwargs):
+        base.SCAD_Object.__init__(self, *args, **kwargs)
+        self.filename = filename
+        self.convexity = convexity
+
+    def cmd_str(self,tab_level=0):
+        return 'import("{0.filename}",convexity={0.convexity});'.format(self)
+
 # 2D primatives ---------------------------------------------------------------
 
 class Circle(base.SCAD_Object):
