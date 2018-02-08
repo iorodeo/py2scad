@@ -67,7 +67,7 @@ ren_win.SetSize(*window_sz)
 
 # Create Actors for stl objects
 for f, prm in stl_files:
-
+    
     # Create the reader and read a data file.  
     sr = vtk.vtkSTLReader()
     sr.SetFileName(f)
@@ -75,7 +75,7 @@ for f, prm in stl_files:
     # Setup actors
     stl_mapper = vtk.vtkPolyDataMapper()
     stl_mapper.ScalarVisibilityOff()
-    stl_mapper.SetInput(sr.GetOutput())
+    stl_mapper.SetInputConnection(sr.GetOutputPort())
 
     stl_actor = vtk.vtkActor()
     stl_actor.SetMapper(stl_mapper)
